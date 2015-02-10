@@ -85,10 +85,10 @@ The following is an example of the current operation and output in a nicely form
         +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
         |              REGION               |                  ID                  |              NAME              |       SERVICENAME       |
         +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
-        | us-california-1-3.vchs.vmware.com | 41400e74-4445-49ef-90a4-98da4ccfb16c | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
-        | us-virginia-1-4.vchs.vmware.com   | feda2919-32cb-4efd-a4e5-c5953733df33 | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
-        | uk-slough-1-6.vchs.vmware.com     | 62155213-e5fc-448d-a46a-770c57c5dd31 | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
-        | PMP                               | e79a3b5f-92bc-4b33-aa6c-9dbd1e9d9bfe | My Subscriptions               | com.vmware.vchs.vcim    |
+        | us-california-1-3.vchs.vmware.com | 41400e72-4445-49ef-90a4-98da4ccfb16c | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
+        | us-virginia-1-4.vchs.vmware.com   | feda2913-32cb-4efd-a4e5-c5953733df33 | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
+        | uk-slough-1-6.vchs.vmware.com     | 62155211-e5fc-448d-a46a-770c57c5dd31 | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
+        | PMP                               | e79a3b5g-92bc-4b33-aa6c-9dbd1e9d9bfe | My Subscriptions               | com.vmware.vchs.vcim    |
         +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
 
 
