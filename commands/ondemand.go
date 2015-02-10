@@ -76,24 +76,69 @@ var ondemandplansgetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "get",
 	Long:  `get`,
-	Run:   GetPlans,
+	Run:   cmdGetPlans,
+}
+
+var ondemandservicegroupidsCmd = &cobra.Command{
+	Use:   "servicegroupids",
+	Short: "servicegroupids",
+	Long:  `servicegroupids`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Usage()
+	},
+}
+
+var ondemandservicegroupidsgetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "get",
+	Long:  `get`,
+	Run:   cmdGetServiceGroupIds,
+}
+
+var ondemandinstancesCmd = &cobra.Command{
+	Use:   "instances",
+	Short: "instances",
+	Long:  `instances`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Usage()
+	},
+}
+
+var ondemandinstancesgetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "get",
+	Long:  `get`,
+	Run:   cmdGetInstances,
 }
 
 func addCommands() {
 	ondemandCmd.AddCommand(ondemandplansCmd)
 	ondemandplansCmd.AddCommand(ondemandplansgetCmd)
+	ondemandCmd.AddCommand(ondemandservicegroupidsCmd)
+	ondemandservicegroupidsCmd.AddCommand(ondemandservicegroupidsgetCmd)
+	ondemandCmd.AddCommand(ondemandinstancesCmd)
+	ondemandinstancesCmd.AddCommand(ondemandinstancesgetCmd)
 }
 
-func GetPlans(cmd *cobra.Command, args []string) {
-	initConfig()
-	client, err := govcloudair.NewClient()
+func authenticate() (client *govcloudair.ODClient, err error) {
+	client, err = govcloudair.NewClient()
 	if err != nil {
-		fmt.Errorf("error with NewClient: %s", err)
+		return client, fmt.Errorf("error with NewClient: %s", err)
 	}
 
 	err = client.Authenticate("", "", "", "")
 	if err != nil {
-		fmt.Errorf("error Authenticating: %s", err)
+		return client, fmt.Errorf("error Authenticating: %s", err)
+	}
+
+	return client, err
+}
+
+func cmdGetPlans(cmd *cobra.Command, args []string) {
+	initConfig()
+	client, err := authenticate()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	planList, err := client.GetPlans()
@@ -107,5 +152,41 @@ func GetPlans(cmd *cobra.Command, args []string) {
 		RowData: reflect.ValueOf(&planList.Plans).Elem(),
 	}
 
-	table.Printtable()
+	table.PrintTable()
+}
+
+func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
+	initConfig()
+	client, err := authenticate()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	table := table.Table{
+		Header:  []string{"ServiceGroupId"},
+		RowData: reflect.ValueOf(&client.ServiceGroupIds.ServiceGroupId).Elem(),
+	}
+
+	table.PrintColumn()
+}
+
+func cmdGetInstances(cmd *cobra.Command, args []string) {
+	initConfig()
+	client, err := authenticate()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	instanceList, err := client.GetInstances()
+	if err != nil {
+		fmt.Errorf("error Getting instances: %s", err)
+	}
+
+	table := table.Table{
+		Header:  []string{"APIURL", "InstanceAttributes", "Region"},
+		Columns: []string{"APIURL", "InstanceAttributes", "Region"},
+		RowData: reflect.ValueOf(&instanceList.Instances).Elem(),
+	}
+
+	table.PrintTable()
 }

@@ -18,7 +18,7 @@ The project currently has the three areas of configuration possible in order to 
 
       VCLOUDAIR_USERNAME='username@domain' \
       VCLOUDAIR_PASSWORD='password' \
-      VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/" \ VCLOUDAIR_SHOW_RESPONSE='true' \
+      VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/" \
       ./goair
 
 ####Configurations files (config.yaml in ~HOME/.goair/ or /etc/goair)
@@ -58,6 +58,8 @@ An interactive run would look like this ```docker run -ti -e VCLOUDAIR_USERNAME=
 This will be filled out as there are more things added.
 
       goair ondemand plans get
+      goair ondemand serivcegroupids get
+      goair ondemand instances get
 
 
 ##Examples
