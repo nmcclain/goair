@@ -82,7 +82,7 @@ Here is the help screen that is available at every level using ```help``` or ```
 The following is an example of the current operation and output in a nicely formatted table.
 
     dicey1:goair clintonkitson$ bin/goair.darwin ondemand plans get
-              +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
+        +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
         |              REGION               |                  ID                  |              NAME              |       SERVICENAME       |
         +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
         | us-california-1-3.vchs.vmware.com | 41400e74-4445-49ef-90a4-98da4ccfb16c | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
