@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM golang:1.4.0-wheezy
 
 ADD ./goair /bin/goair
 
