@@ -9,11 +9,13 @@ The package leverages Steve Francia's [Cobra](https://github.com/spf13/cobra) as
 The project currently has the three areas of configuration possible in order to priority.  
 - Flags (--flag)
 
+
       --username='username@domain'
       --password='pasword'
       --endpoint="https://us-california-1-3.vchs.vmware.com/"
 
 - Environment Variables (VCLOUDAIR_)
+
 
       VCLOUDAIR_USERNAME='username@domain' \
       VCLOUDAIR_PASSWORD='password' \
@@ -21,6 +23,7 @@ The project currently has the three areas of configuration possible in order to 
       ./goair
 
 - Configurations files (config.yaml in ~HOME/.goair/ or /etc/goair)
+
 
       USERNAME: username@domain
       PASSWORD: password
