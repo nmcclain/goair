@@ -11,6 +11,12 @@ var (
 	CfgFile string
 )
 
+type FlagValue struct {
+	value      string
+	mandatory  bool
+	persistent bool
+}
+
 var GoairCmd = &cobra.Command{
 	Use: "goair",
 	Run: func(cmd *cobra.Command, args []string) {

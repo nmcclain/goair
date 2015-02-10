@@ -13,12 +13,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	username string
-	password string
-	endpoint string
-)
-
 var ondemandCmd = &cobra.Command{
 	Use:   "ondemand",
 	Short: "ondemand",
@@ -27,12 +21,22 @@ var ondemandCmd = &cobra.Command{
 
 var ondemandCmdV *cobra.Command
 
+var (
+	username       string
+	password       string
+	endpoint       string
+	serviceGroupId string
+)
+
 func init() {
 	addCommands()
 	ondemandCmd.PersistentFlags().StringVar(&username, "username", "", "VCLOUDAIR_USERNAME")
 	ondemandCmd.PersistentFlags().StringVar(&password, "password", "", "VCLOUDAIR_PASSWORD")
 	ondemandCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "", "VCLOUDAIR_ENDPOINT")
 	viper.SetDefault("endpoint", "https://us-california-1-3.vchs.vmware.com/")
+
+	ondemandbillablecostsCmd.Flags().StringVar(&serviceGroupId, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
+	ondemandbillablecostsgetCmd.Flags().StringVar(&serviceGroupId, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
 
 	ondemandCmdV = ondemandCmd
 
@@ -42,22 +46,35 @@ func init() {
 
 }
 
-func initConfig() {
+func initConfig(cmd *cobra.Command, flags map[string]FlagValue) {
 	InitConfig()
 
-	args := map[string]string{
-		"username": username,
-		"password": password,
-		"endpoint": endpoint,
+	defaultFlags := map[string]FlagValue{
+		"username": {username, true, false},
+		"password": {password, true, false},
+		"endpoint": {endpoint, true, false},
 	}
 
-	for key, value := range args {
-		if ondemandCmdV.PersistentFlags().Lookup(key).Changed {
-			viper.Set(key, value)
+	for key, field := range flags {
+		defaultFlags[key] = field
+	}
+
+	for key, field := range defaultFlags {
+		switch field.persistent {
+		case true:
+			if cmd.PersistentFlags().Lookup(key).Changed {
+				viper.Set(key, field.value)
+			}
+		case false:
+			if cmd.Flags().Lookup(key).Changed {
+				viper.Set(key, field.value)
+			}
+		default:
 		}
+
 		os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), viper.GetString(key))
 
-		if viper.GetString(key) == "" {
+		if viper.GetString(key) == "" && field.mandatory == true {
 			log.Fatalf("missing %v parameter", key)
 		}
 	}
@@ -111,6 +128,49 @@ var ondemandinstancesgetCmd = &cobra.Command{
 	Run:   cmdGetInstances,
 }
 
+var ondemandusersCmd = &cobra.Command{
+	Use:   "users",
+	Short: "users",
+	Long:  `users`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Usage()
+	},
+}
+
+var ondemandusersgetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "get",
+	Long:  `get`,
+	Run:   cmdGetUsers,
+}
+
+var ondemandbillableCmd = &cobra.Command{
+	Use:   "billable",
+	Short: "billable",
+	Long:  `billable`,
+	Run: func(cmd *cobra.Command, args []string) {
+		ondemandCmd.Flags().StringVar(&serviceGroupId, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
+		cmd.Usage()
+	},
+}
+
+var ondemandbillablecostsCmd = &cobra.Command{
+	Use:   "costs",
+	Short: "costs",
+	Long:  `costs`,
+	Run: func(cmd *cobra.Command, args []string) {
+		ondemandCmd.Flags().StringVar(&serviceGroupId, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
+		cmd.Usage()
+	},
+}
+
+var ondemandbillablecostsgetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "get",
+	Long:  `get`,
+	Run:   cmdGetBillableCosts,
+}
+
 func addCommands() {
 	ondemandCmd.AddCommand(ondemandplansCmd)
 	ondemandplansCmd.AddCommand(ondemandplansgetCmd)
@@ -118,6 +178,11 @@ func addCommands() {
 	ondemandservicegroupidsCmd.AddCommand(ondemandservicegroupidsgetCmd)
 	ondemandCmd.AddCommand(ondemandinstancesCmd)
 	ondemandinstancesCmd.AddCommand(ondemandinstancesgetCmd)
+	ondemandCmd.AddCommand(ondemandusersCmd)
+	ondemandusersCmd.AddCommand(ondemandusersgetCmd)
+	ondemandCmd.AddCommand(ondemandbillableCmd)
+	ondemandbillableCmd.AddCommand(ondemandbillablecostsCmd)
+	ondemandbillablecostsCmd.AddCommand(ondemandbillablecostsgetCmd)
 }
 
 func authenticate() (client *govcloudair.ODClient, err error) {
@@ -135,7 +200,8 @@ func authenticate() (client *govcloudair.ODClient, err error) {
 }
 
 func cmdGetPlans(cmd *cobra.Command, args []string) {
-	initConfig()
+	initConfig(cmd, map[string]FlagValue{})
+
 	client, err := authenticate()
 	if err != nil {
 		log.Fatal(err)
@@ -143,7 +209,7 @@ func cmdGetPlans(cmd *cobra.Command, args []string) {
 
 	planList, err := client.GetPlans()
 	if err != nil {
-		fmt.Errorf("error Getting plans: %s", err)
+		log.Fatalf("error Getting plans: %s", err)
 	}
 
 	table := table.Table{
@@ -156,7 +222,7 @@ func cmdGetPlans(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
-	initConfig()
+	initConfig(cmd, map[string]FlagValue{})
 	client, err := authenticate()
 	if err != nil {
 		log.Fatal(err)
@@ -171,7 +237,7 @@ func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetInstances(cmd *cobra.Command, args []string) {
-	initConfig()
+	initConfig(cmd, map[string]FlagValue{})
 	client, err := authenticate()
 	if err != nil {
 		log.Fatal(err)
@@ -179,14 +245,77 @@ func cmdGetInstances(cmd *cobra.Command, args []string) {
 
 	instanceList, err := client.GetInstances()
 	if err != nil {
-		fmt.Errorf("error Getting instances: %s", err)
+		log.Fatalf("error Getting instances: %s", err)
+	}
+
+	for _, arg := range instanceList.Instances {
+		table := table.Table{
+			RowData: reflect.ValueOf(&arg).Elem(),
+		}
+		table.PrintKeyValueTable()
+		fmt.Println()
+	}
+
+}
+
+func cmdGetUsers(cmd *cobra.Command, args []string) {
+	initConfig(cmd, map[string]FlagValue{})
+	client, err := authenticate()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	users, err := client.GetUsers()
+	if err != nil {
+		log.Fatalf("error Getting users: %s", err)
+	}
+
+	for _, arg := range users.User {
+		table := table.Table{
+			RowData: reflect.ValueOf(&arg).Elem(),
+		}
+		table.PrintKeyValueTable()
+		fmt.Println()
+	}
+
+}
+
+func cmdGetBillableCosts(cmd *cobra.Command, args []string) {
+	initConfig(cmd, map[string]FlagValue{
+		"servicegroupid": {serviceGroupId, true, false},
+	})
+	client, err := authenticate()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	billableCosts, err := client.GetBillableCosts(serviceGroupId)
+	if err != nil {
+		log.Fatalf("error Getting billable costs: %s", err)
+
+	}
+
+	for _, arg := range billableCosts.Cost {
+		table := table.Table{
+			RowData: reflect.ValueOf(&arg).Elem(),
+		}
+		table.PrintKeyValueTable()
+		fmt.Println()
+	}
+
+	type tempst struct {
+		Currency       string
+		LastUpdateTime string
+	}
+	leftOver := tempst{
+		Currency:       billableCosts.Currency,
+		LastUpdateTime: billableCosts.LastUpdateTime,
 	}
 
 	table := table.Table{
-		Header:  []string{"APIURL", "InstanceAttributes", "Region"},
-		Columns: []string{"APIURL", "InstanceAttributes", "Region"},
-		RowData: reflect.ValueOf(&instanceList.Instances).Elem(),
+		RowData: reflect.ValueOf(&leftOver).Elem(),
 	}
+	table.PrintKeyValueTable()
+	fmt.Println()
 
-	table.PrintTable()
 }

@@ -60,6 +60,9 @@ This will be filled out as there are more things added.
       goair ondemand plans get
       goair ondemand serivcegroupids get
       goair ondemand instances get
+      goair ondemand users get
+      goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
+      
 
 
 ##Examples
