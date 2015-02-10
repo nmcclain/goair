@@ -7,23 +7,21 @@ The package leverages Steve Francia's [Cobra](https://github.com/spf13/cobra) as
 
 ##Configuration
 The project currently has the three areas of configuration possible in order to priority.  
-- Flags (--flag)
 
+###Flags (--flag)
 
       --username='username@domain'
       --password='pasword'
       --endpoint="https://us-california-1-3.vchs.vmware.com/"
 
-- Environment Variables (VCLOUDAIR_)
-
+###Environment Variables (VCLOUDAIR_)
 
       VCLOUDAIR_USERNAME='username@domain' \
       VCLOUDAIR_PASSWORD='password' \
       VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/" \ VCLOUDAIR_SHOW_RESPONSE='true' \
       ./goair
 
-- Configurations files (config.yaml in ~HOME/.goair/ or /etc/goair)
-
+####Configurations files (config.yaml in ~HOME/.goair/ or /etc/goair)
 
       USERNAME: username@domain
       PASSWORD: password
