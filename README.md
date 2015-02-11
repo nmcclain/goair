@@ -19,14 +19,14 @@ The project currently has the three areas of configuration possible in order to 
       VCLOUDAIR_USERNAME='username@domain' \
       VCLOUDAIR_PASSWORD='password' \
       VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/" \
+      VCLOUDAIR_SHOW_RESPONSE='true' \
       ./goair
 
 ####Configurations files (config.yaml in ~HOME/.goair/ or /etc/goair)
 
-      USERNAME: username@domain
-      PASSWORD: password
-      ENDPOINT: https://us-california-1-3.vchs.vmware.com/
-      SHOW_RESPONSE: false
+      username: username@domain
+      password: password
+      endpoint: https://us-california-1-3.vchs.vmware.com/
 
 ##Compiling
 ```git clone https://github.com/emccode/goair```
@@ -62,7 +62,7 @@ This will be filled out as there are more things added.
       goair ondemand instances get
       goair ondemand users get
       goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
-      
+      goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
 
 
 ##Examples

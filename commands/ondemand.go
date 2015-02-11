@@ -3,9 +3,7 @@ package commands
 import (
 	"fmt"
 	"log"
-	"os"
 	"reflect"
-	"strings"
 
 	"github.com/emccode/goair/table"
 	"github.com/emccode/govcloudair"
@@ -16,20 +14,13 @@ import (
 var ondemandCmd = &cobra.Command{
 	Use:   "ondemand",
 	Short: "ondemand",
-	Long:  `Get plans`,
+	Long:  `ondemand services`,
 }
 
 var ondemandCmdV *cobra.Command
 
-var (
-	username       string
-	password       string
-	endpoint       string
-	serviceGroupId string
-)
-
 func init() {
-	addCommands()
+	addCommandsOnDemand()
 	ondemandCmd.PersistentFlags().StringVar(&username, "username", "", "VCLOUDAIR_USERNAME")
 	ondemandCmd.PersistentFlags().StringVar(&password, "password", "", "VCLOUDAIR_PASSWORD")
 	ondemandCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "", "VCLOUDAIR_ENDPOINT")
@@ -44,40 +35,6 @@ func init() {
 		cmd.Usage()
 	}
 
-}
-
-func initConfig(cmd *cobra.Command, flags map[string]FlagValue) {
-	InitConfig()
-
-	defaultFlags := map[string]FlagValue{
-		"username": {username, true, false},
-		"password": {password, true, false},
-		"endpoint": {endpoint, true, false},
-	}
-
-	for key, field := range flags {
-		defaultFlags[key] = field
-	}
-
-	for key, field := range defaultFlags {
-		switch field.persistent {
-		case true:
-			if cmd.PersistentFlags().Lookup(key).Changed {
-				viper.Set(key, field.value)
-			}
-		case false:
-			if cmd.Flags().Lookup(key).Changed {
-				viper.Set(key, field.value)
-			}
-		default:
-		}
-
-		os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), viper.GetString(key))
-
-		if viper.GetString(key) == "" && field.mandatory == true {
-			log.Fatalf("missing %v parameter", key)
-		}
-	}
 }
 
 var ondemandplansCmd = &cobra.Command{
@@ -171,7 +128,7 @@ var ondemandbillablecostsgetCmd = &cobra.Command{
 	Run:   cmdGetBillableCosts,
 }
 
-func addCommands() {
+func addCommandsOnDemand() {
 	ondemandCmd.AddCommand(ondemandplansCmd)
 	ondemandplansCmd.AddCommand(ondemandplansgetCmd)
 	ondemandCmd.AddCommand(ondemandservicegroupidsCmd)
