@@ -6,28 +6,34 @@ It is in early stages right now, so please follow the repo if interested!  The f
 The package leverages Steve Francia's [Cobra](https://github.com/spf13/cobra) as a CLI framework and [Viper](https://github.com/spf13/viper) for configuration management.
 
 ##Configuration
-The project currently has the three areas of configuration possible in order to priority.  
+The project currently has the four areas of configuration possible, listed in order of priority.  
 
-###Flags (--flag)
+###Flags with possible runtime persistence
 
       --username='username@domain'
       --password='pasword'
-      --endpoint="https://us-california-1-3.vchs.vmware.com/"
+      --endpoint="https://us-california-1-3.vchs.vmware.com/api"
 
-###Environment Variables (VCLOUDAIR_)
-
-      VCLOUDAIR_USERNAME='username@domain' \
-      VCLOUDAIR_PASSWORD='password' \
-      VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/" \
-      VCLOUDAIR_SHOW_RESPONSE='true' \
-      VCLOUDAIR_SHOW_BODY='true' \
-      ./goair
+###Flags saved by ```use``` statement
+A ```use``` command can be used in certain scenarios where the specified flags will be saved for usage later.
+      goair compute use --region=us-virginia-1-4.vchs.vmware.com
+      goair compute use --region=""
 
 ####Configurations files (config.yaml in ~HOME/.goair/ or /etc/goair)
 
       username: username@domain
       password: password
-      endpoint: https://us-california-1-3.vchs.vmware.com/
+      endpoint: https://us-california-1-3.vchs.vmware.com/api
+
+###Environment Variables (VCLOUDAIR_)
+
+      VCLOUDAIR_USERNAME='username@domain' \
+      VCLOUDAIR_PASSWORD='password' \
+      VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/api" \
+      VCLOUDAIR_SHOW_RESPONSE='true' \
+      VCLOUDAIR_SHOW_BODY='true' \
+      ./goair
+
 
 ##Compiling
 ```git clone https://github.com/emccode/goair```
@@ -65,6 +71,7 @@ This will be filled out as there are more things added.
       goair ondemand users get
       goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
       goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
+      goair compute use --region=41400e74-4445-49ef-90a4-98da4ccfb16c
       goair compute get
 
 

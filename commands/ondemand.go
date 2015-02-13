@@ -200,7 +200,7 @@ func authenticate(force bool) (client *govcloudair.ODClient, err error) {
 }
 
 func cmdLogin(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{})
+	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
 	_, err := authenticate(true)
 	if err != nil {
 		log.Fatalf("failed authenticating: %s", err)
@@ -217,7 +217,7 @@ func cmdLogout(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetPlans(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{})
+	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatalf("failed authenticating: %s", err)
@@ -244,7 +244,7 @@ func cmdGetPlans(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{})
+	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(true)
 	if err != nil {
 		log.Fatal(err)
@@ -258,7 +258,7 @@ func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetInstances(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{})
+	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
@@ -279,7 +279,7 @@ func cmdGetInstances(cmd *cobra.Command, args []string) {
 }
 
 func cmdNewInstance(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{})
+	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
@@ -305,7 +305,7 @@ func cmdNewInstance(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetUsers(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{})
+	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
@@ -327,7 +327,7 @@ func cmdGetUsers(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetBillableCosts(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{
+	initConfig(cmd, "ondemand", true, map[string]FlagValue{
 		"servicegroupid": {serviceGroupId, true, false, ""},
 	})
 	client, err := authenticate(false)

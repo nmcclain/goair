@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -62,7 +63,7 @@ func init() {
 	goairCmdV = GoairCmd
 }
 
-func initConfig(cmd *cobra.Command, flags map[string]FlagValue) {
+func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[string]FlagValue) {
 	InitConfig()
 
 	defaultFlags := map[string]FlagValue{
@@ -78,60 +79,85 @@ func initConfig(cmd *cobra.Command, flags map[string]FlagValue) {
 	fieldsMissing := make([]string, 0)
 	fieldsMissingRemove := make([]string, 0)
 
+	cmdFlags := &pflag.FlagSet{}
+
 	for key, field := range defaultFlags {
+		viper.BindEnv(key)
+
 		switch field.persistent {
 		case true:
-			if cmd.PersistentFlags().Lookup(key).Changed {
-				if field.overrideby != "" && (cmd.PersistentFlags().Lookup(field.overrideby).Changed || viper.GetString(field.overrideby) != "") {
-					viper.Set(key, "")
-					os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), "")
-					continue
-				} else {
-					viper.Set(key, field.value)
-				}
-			}
+			cmdFlags = cmd.PersistentFlags()
 		case false:
-			if cmd.Flags().Lookup(key).Changed {
-				if field.overrideby != "" && (cmd.Flags().Lookup(field.overrideby).Changed || viper.GetString(field.overrideby) != "") {
-					viper.Set(key, "")
-					os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), "")
-					continue
-				} else {
-					viper.Set(key, field.value)
-				}
-			}
+			cmdFlags = cmd.Flags()
 		default:
 		}
 
-		os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), viper.GetString(key))
-
-	}
-
-	for key, field := range defaultFlags {
-		if field.mandatory == true {
-			if viper.GetString(key) != "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
-				fieldsMissingRemove = append(fieldsMissingRemove, field.overrideby)
+		if cmdFlags.Lookup(key).Changed {
+			if field.overrideby != "" {
+				if cmdFlags.Lookup(field.overrideby).Changed {
+					viper.Set(key, "")
+					continue
+				}
+			}
+			viper.Set(key, cmdFlags.Lookup(key).Value)
+		} else {
+			if field.overrideby != "" && cmdFlags.Lookup(field.overrideby).Changed == false && viper.GetString(field.overrideby) == "" {
+				if viper.GetString(key) == "" {
+					if err := setGobValues(cmd, "compute", key); err != nil {
+						log.Fatal(err)
+					}
+				}
 			} else {
-				if viper.GetString(key) == "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
-					fieldsMissing = append(fieldsMissing, key)
+				if field.overrideby == "" {
+					if viper.GetString(key) == "" {
+						if err := setGobValues(cmd, "compute", key); err != nil {
+							log.Fatal(err)
+						}
+						for removeKey, field := range defaultFlags {
+							if key == field.overrideby {
+								viper.Set(removeKey, "")
+							}
+						}
+					}
 				}
 			}
 		}
 	}
 
-Loop1:
-	for _, fieldMissingRemove := range fieldsMissingRemove {
-		for i, fieldMissing := range fieldsMissing {
-			if fieldMissing == fieldMissingRemove {
-				fieldsMissing = append(fieldsMissing[:i], fieldsMissing[i+1:]...)
-				break Loop1
+	if checkValues {
+		for key, field := range defaultFlags {
+			if field.mandatory == true {
+				if viper.GetString(key) != "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
+					fieldsMissingRemove = append(fieldsMissingRemove, field.overrideby)
+				} else {
+					if viper.GetString(key) == "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
+						fieldsMissing = append(fieldsMissing, key)
+					}
+				}
 			}
+		}
+
+	Loop1:
+		for _, fieldMissingRemove := range fieldsMissingRemove {
+			for i, fieldMissing := range fieldsMissing {
+				if fieldMissing == fieldMissingRemove {
+					fieldsMissing = append(fieldsMissing[:i], fieldsMissing[i+1:]...)
+					break Loop1
+				}
+			}
+		}
+
+		if len(fieldsMissing) != 0 {
+			log.Fatalf("missing parameter: %v", strings.Join(fieldsMissing, ", "))
 		}
 	}
 
-	if len(fieldsMissing) != 0 {
-		log.Fatalf("missing parameter: %v", strings.Join(fieldsMissing, ", "))
+	for key, _ := range defaultFlags {
+		if viper.GetString(key) != "" {
+			os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), viper.GetString(key))
+		}
 	}
+
 }
 
 func InitConfig() {
@@ -163,7 +189,6 @@ func deleteGobFile(suffix string) (err error) {
 
 func encodeGobFile(suffix string, useValue UseValue) (err error) {
 	fileLocation := fmt.Sprintf("%vgoair_%v.gob", os.TempDir(), suffix)
-	//fmt.Println(fileLocation)
 	file, err := os.Create(fileLocation)
 	if err != nil {
 		return fmt.Errorf("Problem creating file:", err)
@@ -193,7 +218,6 @@ func encodeGobFile(suffix string, useValue UseValue) (err error) {
 
 func decodeGobFile(suffix string, getValue *GetValue) (err error) {
 	fileLocation := fmt.Sprintf("%vgoair_%v.gob", os.TempDir(), suffix)
-	//fmt.Println(fileLocation)
 	file, err := os.Open(fileLocation)
 	if err != nil {
 		if os.IsExist(err) {
@@ -219,17 +243,17 @@ func decodeGobFile(suffix string, getValue *GetValue) (err error) {
 	return
 }
 
-func setGobValues(cmd *cobra.Command, suffix string) (err error) {
+func setGobValues(cmd *cobra.Command, suffix string, field string) (err error) {
 	getValue := GetValue{}
 	if err := decodeGobFile(suffix, &getValue); err != nil {
 		return fmt.Errorf("Problem with decodeGobFile", err)
 	}
 	for key, _ := range getValue.VarMap {
 		lowerKey := strings.ToLower(key)
-		if cmd.Flags().Lookup(lowerKey).Changed == false {
-			cmd.Flags().Lookup(lowerKey).Value.Set(*getValue.VarMap[key])
-			viper.Set(lowerKey, *getValue.VarMap[key])
+		if field != "" && field != lowerKey {
+			continue
 		}
+		viper.Set(lowerKey, *getValue.VarMap[key])
 	}
 	return
 }

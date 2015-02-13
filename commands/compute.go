@@ -35,7 +35,7 @@ func init() {
 	computeCmdV = computeCmd
 
 	computeCmd.Run = func(cmd *cobra.Command, args []string) {
-		setGobValues(cmd, "compute")
+		setGobValues(cmd, "compute", "")
 		cmd.Usage()
 	}
 }
@@ -60,15 +60,15 @@ func addCommandsCompute() {
 }
 
 func cmdUseCompute(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{
+	initConfig(cmd, "compute", false, map[string]FlagValue{
 		"planid": {planID, true, false, ""},
 		"region": {region, true, false, "planid"},
 	})
 
 	err := encodeGobFile("compute", UseValue{
 		VarMap: map[string]string{
-			"planID": planID,
-			"region": region,
+			"planID": viper.GetString("planid"),
+			"region": viper.GetString("region"),
 		},
 	})
 	if err != nil {
@@ -86,31 +86,31 @@ func cmdUseCompute(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetCompute(cmd *cobra.Command, args []string) {
-	initConfig(cmd, map[string]FlagValue{})
+	initConfig(cmd, "compute", true, map[string]FlagValue{
+		"planid": {planID, true, false, ""},
+		"region": {region, true, false, "planid"},
+	})
+
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatalf("failed authenticating: %s", err)
 	}
 
-	if err := setGobValues(cmd, "compute"); err != nil {
-		log.Fatal(err)
-	}
-
-	initConfig(cmd, map[string]FlagValue{
-		"planid": {planID, true, false, ""},
-	})
-
-	planList, err := client.GetPlans()
+	instanceList, err := client.GetInstances()
 	if err != nil {
-		log.Fatalf("error Getting plans: %s", err)
+		log.Fatalf("error Getting instances: %s", err)
 	}
 
-	plan := vcatypes.Plan{}
-	for _, arg := range planList.Plans {
-		if (region != "" && arg.Region == region) || (planID != "" && arg.ID == planID) {
+	plan := vcatypes.Instance{}
+	for _, arg := range instanceList.Instances {
+		if (viper.GetString("region") != "" && arg.Region == region) || (viper.GetString("planid") != "" && arg.PlanID == planID) {
 			plan = arg
 			break
 		}
+	}
+
+	if plan.PlanID == "" {
+		return
 	}
 
 	yamlOutput, err := yaml.Marshal(&plan)
