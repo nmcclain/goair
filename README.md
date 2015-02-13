@@ -1,5 +1,5 @@
 #GoAir
-**GoAir** is a multi-platform (Linux/Windows) CLI tool written as a Golang package that implements the [VMware vCloud Air bindings](https://github.com/vmware/govcloudair) package.
+**GoAir** is a multi-platform (Linux/OS X/Windows) CLI tool written as a Golang package that implements the [VMware vCloud Air bindings](https://github.com/vmware/govcloudair) package.
 
 It is in early stages right now, so please follow the repo if interested!  The focus up to this point has been in implementing the correct CLI and configuration framework along with basic vCloud Air On-Demand authentication.
 
@@ -20,6 +20,7 @@ The project currently has the three areas of configuration possible in order to 
       VCLOUDAIR_PASSWORD='password' \
       VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/" \
       VCLOUDAIR_SHOW_RESPONSE='true' \
+      VCLOUDAIR_SHOW_BODY='true' \
       ./goair
 
 ####Configurations files (config.yaml in ~HOME/.goair/ or /etc/goair)
@@ -57,12 +58,14 @@ An interactive run would look like this ```docker run -ti -e VCLOUDAIR_USERNAME=
 ##CLI Hierarchy
 This will be filled out as there are more things added.
 
+      goair ondemand login
       goair ondemand plans get
       goair ondemand serivcegroupids get
       goair ondemand instances get
       goair ondemand users get
       goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
       goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
+      goair compute get
 
 
 ##Examples

@@ -19,6 +19,7 @@ var (
 	endpoint       string
 	serviceGroupId string
 	planID         string
+	region         string
 )
 
 type UseValue struct {
@@ -33,6 +34,7 @@ type FlagValue struct {
 	value      string
 	mandatory  bool
 	persistent bool
+	overrideby string
 }
 
 var GoairCmd = &cobra.Command{
@@ -64,33 +66,71 @@ func initConfig(cmd *cobra.Command, flags map[string]FlagValue) {
 	InitConfig()
 
 	defaultFlags := map[string]FlagValue{
-		"username": {username, true, false},
-		"password": {password, true, false},
-		"endpoint": {endpoint, true, false},
+		"username": {username, true, false, ""},
+		"password": {password, true, false, ""},
+		"endpoint": {endpoint, true, false, ""},
 	}
 
 	for key, field := range flags {
 		defaultFlags[key] = field
 	}
 
+	fieldsMissing := make([]string, 0)
+	fieldsMissingRemove := make([]string, 0)
+
 	for key, field := range defaultFlags {
 		switch field.persistent {
 		case true:
 			if cmd.PersistentFlags().Lookup(key).Changed {
-				viper.Set(key, field.value)
+				if field.overrideby != "" && (cmd.PersistentFlags().Lookup(field.overrideby).Changed || viper.GetString(field.overrideby) != "") {
+					viper.Set(key, "")
+					os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), "")
+					continue
+				} else {
+					viper.Set(key, field.value)
+				}
 			}
 		case false:
 			if cmd.Flags().Lookup(key).Changed {
-				viper.Set(key, field.value)
+				if field.overrideby != "" && (cmd.Flags().Lookup(field.overrideby).Changed || viper.GetString(field.overrideby) != "") {
+					viper.Set(key, "")
+					os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), "")
+					continue
+				} else {
+					viper.Set(key, field.value)
+				}
 			}
 		default:
 		}
 
 		os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), viper.GetString(key))
 
-		if viper.GetString(key) == "" && field.mandatory == true {
-			log.Fatalf("missing %v parameter", key)
+	}
+
+	for key, field := range defaultFlags {
+		if field.mandatory == true {
+			if viper.GetString(key) != "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
+				fieldsMissingRemove = append(fieldsMissingRemove, field.overrideby)
+			} else {
+				if viper.GetString(key) == "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
+					fieldsMissing = append(fieldsMissing, key)
+				}
+			}
 		}
+	}
+
+Loop1:
+	for _, fieldMissingRemove := range fieldsMissingRemove {
+		for i, fieldMissing := range fieldsMissing {
+			if fieldMissing == fieldMissingRemove {
+				fieldsMissing = append(fieldsMissing[:i], fieldsMissing[i+1:]...)
+				break Loop1
+			}
+		}
+	}
+
+	if len(fieldsMissing) != 0 {
+		log.Fatalf("missing parameter: %v", strings.Join(fieldsMissing, ", "))
 	}
 }
 
@@ -112,17 +152,30 @@ func InitConfig() {
 	viper.SetEnvPrefix("VCLOUDAIR")
 }
 
-func encodeGobFile(suffix string, useValue UseValue) {
+func deleteGobFile(suffix string) (err error) {
 	fileLocation := fmt.Sprintf("%vgoair_%v.gob", os.TempDir(), suffix)
-	fmt.Println(fileLocation)
+	err = os.Remove(fileLocation)
+	if err != nil {
+		return fmt.Errorf("Problem removing file:", err)
+	}
+	return nil
+}
+
+func encodeGobFile(suffix string, useValue UseValue) (err error) {
+	fileLocation := fmt.Sprintf("%vgoair_%v.gob", os.TempDir(), suffix)
+	//fmt.Println(fileLocation)
 	file, err := os.Create(fileLocation)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("Problem creating file:", err)
+	}
+
+	if err = file.Chmod(0600); err != nil {
+		return fmt.Errorf("Problem setting persmission onfile:", err)
 	}
 
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Fatal(err)
+			log.Fatal("Problem closing file:", err)
 		}
 	}()
 
@@ -130,24 +183,29 @@ func encodeGobFile(suffix string, useValue UseValue) {
 
 	encoder := gob.NewEncoder(fileWriter)
 	err = encoder.Encode(useValue)
-	fmt.Println(useValue)
+	//fmt.Println(useValue)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("Problem encoding gob:", err)
 	}
 	fileWriter.Flush()
+	return
 }
 
-func decodeGobFile(suffix string, getValue *GetValue) {
+func decodeGobFile(suffix string, getValue *GetValue) (err error) {
 	fileLocation := fmt.Sprintf("%vgoair_%v.gob", os.TempDir(), suffix)
-	fmt.Println(fileLocation)
+	//fmt.Println(fileLocation)
 	file, err := os.Open(fileLocation)
 	if err != nil {
-		log.Fatal(err)
+		if os.IsExist(err) {
+			log.Fatal("Problem opening file:", err)
+		} else {
+			return nil
+		}
 	}
 
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Fatal(err)
+			log.Fatal("Problem closing file:", err)
 		}
 	}()
 
@@ -156,6 +214,22 @@ func decodeGobFile(suffix string, getValue *GetValue) {
 	decoder := gob.NewDecoder(fileReader)
 	err = decoder.Decode(&getValue)
 	if err != nil {
-		log.Fatal("decode error:", err)
+		return fmt.Errorf("Problem decoding file:", err)
 	}
+	return
+}
+
+func setGobValues(cmd *cobra.Command, suffix string) (err error) {
+	getValue := GetValue{}
+	if err := decodeGobFile(suffix, &getValue); err != nil {
+		return fmt.Errorf("Problem with decodeGobFile", err)
+	}
+	for key, _ := range getValue.VarMap {
+		lowerKey := strings.ToLower(key)
+		if cmd.Flags().Lookup(lowerKey).Changed == false {
+			cmd.Flags().Lookup(lowerKey).Value.Set(*getValue.VarMap[key])
+			viper.Set(lowerKey, *getValue.VarMap[key])
+		}
+	}
+	return
 }

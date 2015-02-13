@@ -3,12 +3,15 @@ package commands
 import (
 	"fmt"
 	"log"
+	"os"
 	"reflect"
 
 	"github.com/emccode/goair/table"
 	"github.com/emccode/govcloudair"
+	"github.com/emccode/govcloudair/types/vcav1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v1"
 )
 
 var ondemandCmd = &cobra.Command{
@@ -35,6 +38,20 @@ func init() {
 		cmd.Usage()
 	}
 
+}
+
+var ondemandloginCmd = &cobra.Command{
+	Use:   "login",
+	Short: "Login to vCloud Air",
+	Long:  `Login to vCloud Air`,
+	Run:   cmdLogin,
+}
+
+var ondemandlogoutCmd = &cobra.Command{
+	Use:   "logout",
+	Short: "Logout of vCloud Air",
+	Long:  `Logout of vCloud Air and remove temporary token file`,
+	Run:   cmdLogout,
 }
 
 var ondemandplansCmd = &cobra.Command{
@@ -85,6 +102,13 @@ var ondemandinstancesgetCmd = &cobra.Command{
 	Run:   cmdGetInstances,
 }
 
+var ondemandinstancesnewCmd = &cobra.Command{
+	Use:   "new",
+	Short: "new",
+	Long:  `new`,
+	Run:   cmdNewInstance,
+}
+
 var ondemandusersCmd = &cobra.Command{
 	Use:   "users",
 	Short: "users",
@@ -129,12 +153,15 @@ var ondemandbillablecostsgetCmd = &cobra.Command{
 }
 
 func addCommandsOnDemand() {
+	ondemandCmd.AddCommand(ondemandloginCmd)
+	ondemandCmd.AddCommand(ondemandlogoutCmd)
 	ondemandCmd.AddCommand(ondemandplansCmd)
 	ondemandplansCmd.AddCommand(ondemandplansgetCmd)
 	ondemandCmd.AddCommand(ondemandservicegroupidsCmd)
 	ondemandservicegroupidsCmd.AddCommand(ondemandservicegroupidsgetCmd)
 	ondemandCmd.AddCommand(ondemandinstancesCmd)
 	ondemandinstancesCmd.AddCommand(ondemandinstancesgetCmd)
+	// ondemandinstancesCmd.AddCommand(ondemandinstancesnewCmd)
 	ondemandCmd.AddCommand(ondemandusersCmd)
 	ondemandusersCmd.AddCommand(ondemandusersgetCmd)
 	ondemandCmd.AddCommand(ondemandbillableCmd)
@@ -142,26 +169,58 @@ func addCommandsOnDemand() {
 	ondemandbillablecostsCmd.AddCommand(ondemandbillablecostsgetCmd)
 }
 
-func authenticate() (client *govcloudair.ODClient, err error) {
+func authenticate(force bool) (client *govcloudair.ODClient, err error) {
 	client, err = govcloudair.NewClient()
 	if err != nil {
 		return client, fmt.Errorf("error with NewClient: %s", err)
 	}
 
-	err = client.Authenticate("", "", "", "")
-	if err != nil {
-		return client, fmt.Errorf("error Authenticating: %s", err)
+	getValue := GetValue{}
+	if err := decodeGobFile("client", &getValue); err != nil {
+		return &govcloudair.ODClient{}, fmt.Errorf("Problem with client decodeGobFile", err)
+	}
+
+	if force || getValue.VarMap["VAToken"] == nil {
+		err = client.Authenticate("", "", "", "")
+		if err != nil {
+			return client, fmt.Errorf("error Authenticating: %s", err)
+		}
+
+		err = encodeGobFile("client", UseValue{
+			VarMap: map[string]string{
+				"VAToken": client.VAToken,
+			},
+		})
+	} else {
+		fmt.Println(client.VAToken)
+		client.VAToken = *getValue.VarMap["VAToken"]
 	}
 
 	return client, err
 }
 
+func cmdLogin(cmd *cobra.Command, args []string) {
+	initConfig(cmd, map[string]FlagValue{})
+	_, err := authenticate(true)
+	if err != nil {
+		log.Fatalf("failed authenticating: %s", err)
+	}
+}
+
+func cmdLogout(cmd *cobra.Command, args []string) {
+	err := deleteGobFile("client")
+	if err != nil {
+		if os.IsExist(err) {
+			log.Fatalf("failed to delete client gob file: %s", err)
+		}
+	}
+}
+
 func cmdGetPlans(cmd *cobra.Command, args []string) {
 	initConfig(cmd, map[string]FlagValue{})
-
-	client, err := authenticate()
+	client, err := authenticate(false)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed authenticating: %s", err)
 	}
 
 	planList, err := client.GetPlans()
@@ -169,18 +228,24 @@ func cmdGetPlans(cmd *cobra.Command, args []string) {
 		log.Fatalf("error Getting plans: %s", err)
 	}
 
-	table := table.Table{
-		Header:  []string{"Region", "ID", "Name", "ServiceName"},
-		Columns: []string{"Region", "ID", "Name", "ServiceName"},
-		RowData: reflect.ValueOf(&planList.Plans).Elem(),
-	}
+	// table := table.Table{
+	// 	Header:  []string{"Region", "ID", "Name", "ServiceName"},
+	// 	Columns: []string{"Region", "ID", "Name", "ServiceName"},
+	// 	RowData: reflect.ValueOf(&planList.Plans).Elem(),
+	// }
+	//
+	// table.PrintTable()
 
-	table.PrintTable()
+	yamlOutput, err := yaml.Marshal(&planList)
+	if err != nil {
+		log.Fatalf("error marshaling: %s", err)
+	}
+	fmt.Println(string(yamlOutput))
 }
 
 func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
 	initConfig(cmd, map[string]FlagValue{})
-	client, err := authenticate()
+	client, err := authenticate(true)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -189,13 +254,12 @@ func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
 		Header:  []string{"ServiceGroupId"},
 		RowData: reflect.ValueOf(&client.ServiceGroupIds.ServiceGroupId).Elem(),
 	}
-
 	table.PrintColumn()
 }
 
 func cmdGetInstances(cmd *cobra.Command, args []string) {
 	initConfig(cmd, map[string]FlagValue{})
-	client, err := authenticate()
+	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -212,12 +276,37 @@ func cmdGetInstances(cmd *cobra.Command, args []string) {
 		table.PrintKeyValueTable()
 		fmt.Println()
 	}
+}
+
+func cmdNewInstance(cmd *cobra.Command, args []string) {
+	initConfig(cmd, map[string]FlagValue{})
+	client, err := authenticate(false)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	instanceSpecParams := vcatypes.InstanceSpecParams{
+		Name:           "testing",
+		PlanID:         "41400e74-4445-49ef-90a4-98da4ccfb16c",
+		ServiceGroupId: "4fde19a4-7621-428e-b190-dd4db2e158cd",
+	}
+
+	instance, err := client.NewInstance(instanceSpecParams)
+	if err != nil {
+		log.Fatalf("error Getting instances: %s", err)
+	}
+
+	table := table.Table{
+		RowData: reflect.ValueOf(&instance).Elem(),
+	}
+	table.PrintKeyValueTable()
+	fmt.Println()
 
 }
 
 func cmdGetUsers(cmd *cobra.Command, args []string) {
 	initConfig(cmd, map[string]FlagValue{})
-	client, err := authenticate()
+	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -239,9 +328,9 @@ func cmdGetUsers(cmd *cobra.Command, args []string) {
 
 func cmdGetBillableCosts(cmd *cobra.Command, args []string) {
 	initConfig(cmd, map[string]FlagValue{
-		"servicegroupid": {serviceGroupId, true, false},
+		"servicegroupid": {serviceGroupId, true, false, ""},
 	})
-	client, err := authenticate()
+	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
 	}
