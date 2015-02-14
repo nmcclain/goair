@@ -156,6 +156,7 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 		if viper.GetString(key) != "" {
 			os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), viper.GetString(key))
 		}
+		//fmt.Println(viper.GetString(key))
 	}
 
 }

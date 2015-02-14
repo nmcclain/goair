@@ -73,6 +73,7 @@ This will be filled out as there are more things added.
       goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
       goair compute use --region=41400e74-4445-49ef-90a4-98da4ccfb16c
       goair compute get
+      goair compute get --region=us-california-1-3.vchs.vmware.com
 
 
 ##Examples
