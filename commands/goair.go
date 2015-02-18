@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -195,8 +196,10 @@ func encodeGobFile(suffix string, useValue UseValue) (err error) {
 		return fmt.Errorf("Problem creating file:", err)
 	}
 
-	if err = file.Chmod(0600); err != nil {
-		return fmt.Errorf("Problem setting persmission onfile:", err)
+	if runtime.GOOS != "windows" {
+		if err = file.Chmod(0600); err != nil {
+			return fmt.Errorf("Problem setting persmission onfile:", err)
+		}
 	}
 
 	defer func() {
