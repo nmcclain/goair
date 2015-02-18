@@ -36,9 +36,9 @@ A ```use``` command can be used in certain scenarios where the specified flags w
 
 
 ##Compiling
-```git clone https://github.com/emccode/goair```
-```go build -i -a```
-```go install github.com/emccode/goair```
+    git clone https://github.com/emccode/goair
+    go build -i -a
+    go install github.com/emccode/goai
 
 Additionally if you want to cross-compile this you can use the following command to create a release directory under the goair folder with the release binaries.
 
