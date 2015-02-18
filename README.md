@@ -40,18 +40,20 @@ A ```use``` command can be used in certain scenarios where the specified flags w
 ```go build -i -a```
 ```go install github.com/emccode/goair```
 
+Additionally if you want to cross-compile this you can use the following command to create a release directory under the goair folder with the release binaries.
+
+This will create binaries for OS X/FreeBSD/Linux/Linux Static/Windows.
+
+```docker run --rm -it -v $GOPATH:/go -w /go/src/github.com/emccode/goair golang:1.3-cross make release```
+
+
+
 ##Docker Build
-Start by cloning the Github repo with ```git clone https://github.com/emccode/goair```.
-
-If you need to build the container manually to get the latest binary and place it will place ```goair``` the binary locally.  This binary may not be executable since it is being compiled for a Linux platform.
-```docker run -ti -e REPO_PATH=github.com/emccode/goair -v $(pwd):/output emccode/golang_build_from_url```
-
-Once this is done you can build a new Docker container with this binary.
-```docker build -t emccode/goair .```.
+Run the ```Compiling``` steps first.  From there you can issue a ```docker build -t emccode/goair .``` command to build the new Docker container.  This container will be using the ```scratch``` image which will have a size of around 10MB.
 
 
 ##Running
-The CLI can be ran as follows.
+The CLI can be ran as follows.  Using the proper binary from the ```release``` directory the following command will work.
 
 ```goair --help```
 
