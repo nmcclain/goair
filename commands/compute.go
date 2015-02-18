@@ -68,7 +68,9 @@ func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (e
 	}
 
 	if ia != "" {
-		ia = *getValue.VarMap["instanceAttributes"]
+		if getValue.VarMap["instanceAttributes"] != nil {
+			ia = *(getValue.VarMap["instanceAttributes"])
+		}
 	}
 
 	if force || *getValue.VarMap["VCDToken"] == "" {
@@ -81,10 +83,21 @@ func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (e
 			return fmt.Errorf("error Authenticating: %s", err)
 		}
 
+		var planid string
+		var region string
+
+		if getValue.VarMap["planID"] != nil {
+			planid = *getValue.VarMap["planID"]
+		}
+
+		if getValue.VarMap["region"] != nil {
+			region = *getValue.VarMap["region"]
+		}
+
 		err = encodeGobFile("compute", UseValue{
 			VarMap: map[string]string{
-				"planID":             *getValue.VarMap["planID"],
-				"region":             *getValue.VarMap["region"],
+				"planID":             planid,
+				"region":             region,
 				"instanceAttributes": ia,
 				"VCDToken":           client.VCDToken,
 			},
