@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	"github.com/emccode/clue"
-	"github.com/emccode/goair/table"
+	"github.com/emccode/gotablethis"
 	"github.com/emccode/govcloudair"
 	"github.com/emccode/govcloudair/types/vcav1"
 	"github.com/spf13/cobra"
@@ -30,8 +30,8 @@ func init() {
 	ondemandCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "", "VCLOUDAIR_ENDPOINT")
 	viper.SetDefault("endpoint", "https://us-california-1-3.vchs.vmware.com/api")
 
-	ondemandbillablecostsCmd.Flags().StringVar(&serviceGroupId, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
-	ondemandbillablecostsgetCmd.Flags().StringVar(&serviceGroupId, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
+	ondemandbillablecostsCmd.Flags().StringVar(&serviceGroupID, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
+	ondemandbillablecostsgetCmd.Flags().StringVar(&serviceGroupID, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
 
 	ondemandCmdV = ondemandCmd
 
@@ -131,7 +131,7 @@ var ondemandbillableCmd = &cobra.Command{
 	Short: "billable",
 	Long:  `billable`,
 	Run: func(cmd *cobra.Command, args []string) {
-		ondemandCmd.Flags().StringVar(&serviceGroupId, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
+		ondemandCmd.Flags().StringVar(&serviceGroupID, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
 		cmd.Usage()
 	},
 }
@@ -141,7 +141,7 @@ var ondemandbillablecostsCmd = &cobra.Command{
 	Short: "costs",
 	Long:  `costs`,
 	Run: func(cmd *cobra.Command, args []string) {
-		ondemandCmd.Flags().StringVar(&serviceGroupId, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
+		ondemandCmd.Flags().StringVar(&serviceGroupID, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")
 		cmd.Usage()
 	},
 }
@@ -178,7 +178,7 @@ func authenticate(force bool) (client *govcloudair.ODClient, err error) {
 
 	getValue := clue.GetValue{}
 	if err := clue.DecodeGobFile("goair_client", &getValue); err != nil {
-		return &govcloudair.ODClient{}, fmt.Errorf("Problem with client decodeGobFile", err)
+		return &govcloudair.ODClient{}, fmt.Errorf("Problem with client decodeGobFile: %v", err)
 	}
 
 	if force || getValue.VarMap["VAToken"] == nil {
@@ -251,9 +251,9 @@ func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	table := table.Table{
-		Header:  []string{"ServiceGroupId"},
-		RowData: reflect.ValueOf(&client.ServiceGroupIds.ServiceGroupId).Elem(),
+	table := gotablethis.Table{
+		Header:  []string{"ServiceGroupID"},
+		RowData: reflect.ValueOf(&client.ServiceGroupIds.ServiceGroupID).Elem(),
 	}
 	table.PrintColumn()
 }
@@ -270,13 +270,19 @@ func cmdGetInstances(cmd *cobra.Command, args []string) {
 		log.Fatalf("error Getting instances: %s", err)
 	}
 
-	for _, arg := range instanceList.Instances {
-		table := table.Table{
-			RowData: reflect.ValueOf(&arg).Elem(),
-		}
-		table.PrintKeyValueTable()
-		fmt.Println()
+	// for _, arg := range instanceList.Instances {
+	// 	table := gotablethis.Table{
+	// 		RowData: reflect.ValueOf(&arg).Elem(),
+	// 	}
+	// 	table.PrintKeyValueTable()
+	// 	fmt.Println()
+	// }
+	yamlOutput, err := yaml.Marshal(&instanceList.Instances)
+	if err != nil {
+		log.Fatalf("error marshaling: %s", err)
 	}
+	fmt.Println(string(yamlOutput))
+
 }
 
 func cmdNewInstance(cmd *cobra.Command, args []string) {
@@ -289,7 +295,7 @@ func cmdNewInstance(cmd *cobra.Command, args []string) {
 	instanceSpecParams := vcatypes.InstanceSpecParams{
 		Name:           "testing",
 		PlanID:         "41400e74-4445-49ef-90a4-98da4ccfb16c",
-		ServiceGroupId: "4fde19a4-7621-428e-b190-dd4db2e158cd",
+		ServiceGroupID: "4fde19a4-7621-428e-b190-dd4db2e158cd",
 	}
 
 	instance, err := client.NewInstance(instanceSpecParams)
@@ -297,7 +303,7 @@ func cmdNewInstance(cmd *cobra.Command, args []string) {
 		log.Fatalf("error Getting instances: %s", err)
 	}
 
-	table := table.Table{
+	table := gotablethis.Table{
 		RowData: reflect.ValueOf(&instance).Elem(),
 	}
 	table.PrintKeyValueTable()
@@ -318,7 +324,7 @@ func cmdGetUsers(cmd *cobra.Command, args []string) {
 	}
 
 	for _, arg := range users.User {
-		table := table.Table{
+		table := gotablethis.Table{
 			RowData: reflect.ValueOf(&arg).Elem(),
 		}
 		table.PrintKeyValueTable()
@@ -329,21 +335,21 @@ func cmdGetUsers(cmd *cobra.Command, args []string) {
 
 func cmdGetBillableCosts(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_ondemand", true, map[string]FlagValue{
-		"servicegroupid": {serviceGroupId, true, false, ""},
+		"servicegroupid": {serviceGroupID, true, false, ""},
 	})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	billableCosts, err := client.GetBillableCosts(serviceGroupId)
+	billableCosts, err := client.GetBillableCosts(serviceGroupID)
 	if err != nil {
 		log.Fatalf("error Getting billable costs: %s", err)
 
 	}
 
 	for _, arg := range billableCosts.Cost {
-		table := table.Table{
+		table := gotablethis.Table{
 			RowData: reflect.ValueOf(&arg).Elem(),
 		}
 		table.PrintKeyValueTable()
@@ -359,7 +365,7 @@ func cmdGetBillableCosts(cmd *cobra.Command, args []string) {
 		LastUpdateTime: billableCosts.LastUpdateTime,
 	}
 
-	table := table.Table{
+	table := gotablethis.Table{
 		RowData: reflect.ValueOf(&leftOver).Elem(),
 	}
 	table.PrintKeyValueTable()

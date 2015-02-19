@@ -70,7 +70,7 @@ func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (e
 
 	if ia != "" {
 		if getValue.VarMap["instanceAttributes"] != nil {
-			ia = *(getValue.VarMap["instanceAttributes"])
+			ia = *getValue.VarMap["instanceAttributes"]
 		}
 	}
 

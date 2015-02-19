@@ -14,15 +14,16 @@ import (
 )
 
 var (
-	CfgFile        string
+	cfgFile        string
 	username       string
 	password       string
 	endpoint       string
-	serviceGroupId string
+	serviceGroupID string
 	planID         string
 	region         string
 )
 
+//FlagValue struct
 type FlagValue struct {
 	value      string
 	mandatory  bool
@@ -30,6 +31,7 @@ type FlagValue struct {
 	overrideby string
 }
 
+//GoairCmd
 var GoairCmd = &cobra.Command{
 	Use: "goair",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -38,11 +40,13 @@ var GoairCmd = &cobra.Command{
 	},
 }
 
+//Exec function
 func Exec() {
 	AddCommands()
 	GoairCmd.Execute()
 }
 
+//AddCommands function
 func AddCommands() {
 	GoairCmd.AddCommand(ondemandCmd)
 	GoairCmd.AddCommand(computeCmd)
@@ -51,7 +55,7 @@ func AddCommands() {
 var goairCmdV *cobra.Command
 
 func init() {
-	GoairCmd.PersistentFlags().StringVar(&CfgFile, "Config", "", "config file (default is $HOME/goair/config.yaml)")
+	GoairCmd.PersistentFlags().StringVar(&cfgFile, "Config", "", "config file (default is $HOME/goair/config.yaml)")
 	goairCmdV = GoairCmd
 }
 
@@ -68,8 +72,8 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 		defaultFlags[key] = field
 	}
 
-	fieldsMissing := make([]string, 0)
-	fieldsMissingRemove := make([]string, 0)
+	var fieldsMissing []string
+	var fieldsMissingRemove []string
 
 	cmdFlags := &pflag.FlagSet{}
 
@@ -106,10 +110,11 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 							log.Fatal(err)
 						}
 						for removeKey, field := range defaultFlags {
-							if key == field.overrideby {
+							if key == field.overrideby && viper.GetString(field.overrideby) != "" {
 								viper.Set(removeKey, "")
 							}
 						}
+
 					}
 				}
 			}
@@ -144,7 +149,7 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 		}
 	}
 
-	for key, _ := range defaultFlags {
+	for key := range defaultFlags {
 		if viper.GetString(key) != "" {
 			os.Setenv(fmt.Sprintf("VCLOUDAIR_%v", strings.ToUpper(key)), viper.GetString(key))
 		}
@@ -153,9 +158,10 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 
 }
 
+//InitConfig function
 func InitConfig() {
-	if CfgFile != "" {
-		viper.SetConfigFile(CfgFile)
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
 	}
 
 	viper.SetConfigName("config")
@@ -174,9 +180,9 @@ func InitConfig() {
 func setGobValues(cmd *cobra.Command, suffix string, field string) (err error) {
 	getValue := clue.GetValue{}
 	if err := clue.DecodeGobFile(suffix, &getValue); err != nil {
-		return fmt.Errorf("Problem with decodeGobFile", err)
+		return fmt.Errorf("Problem with decodeGobFile: %v", err)
 	}
-	for key, _ := range getValue.VarMap {
+	for key := range getValue.VarMap {
 		lowerKey := strings.ToLower(key)
 		if field != "" && field != lowerKey {
 			continue
