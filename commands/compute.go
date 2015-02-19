@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/emccode/clue"
 	"github.com/emccode/govcloudair"
 	"github.com/emccode/govcloudair/types/vcav1"
 	"github.com/spf13/cobra"
@@ -37,7 +38,7 @@ func init() {
 	computeCmdV = computeCmd
 
 	computeCmd.Run = func(cmd *cobra.Command, args []string) {
-		setGobValues(cmd, "compute", "")
+		setGobValues(cmd, "goair_compute", "")
 		cmd.Usage()
 	}
 }
@@ -62,9 +63,9 @@ func addCommandsCompute() {
 }
 
 func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (err error) {
-	getValue := GetValue{}
-	if err := decodeGobFile("compute", &getValue); err != nil {
-		return fmt.Errorf("Problem with client decodeGobFile", err)
+	getValue := clue.GetValue{}
+	if err := clue.DecodeGobFile("goair_compute", &getValue); err != nil {
+		return fmt.Errorf("Problem with client DecodeGobFile", err)
 	}
 
 	if ia != "" {
@@ -94,7 +95,7 @@ func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (e
 			region = *getValue.VarMap["region"]
 		}
 
-		err = encodeGobFile("compute", UseValue{
+		err = clue.EncodeGobFile("goair_compute", clue.UseValue{
 			VarMap: map[string]string{
 				"planID":             planid,
 				"region":             region,
@@ -114,7 +115,7 @@ func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (e
 }
 
 func cmdUseCompute(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "compute", false, map[string]FlagValue{
+	initConfig(cmd, "goair_compute", false, map[string]FlagValue{
 		"planid": {planID, true, false, ""},
 		"region": {region, true, false, "planid"},
 	})
@@ -153,7 +154,7 @@ func cmdUseCompute(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetCompute(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "compute", true, map[string]FlagValue{
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
 		"planid": {planID, true, false, ""},
 		"region": {region, true, false, "planid"},
 	})
@@ -182,15 +183,6 @@ func cmdGetCompute(cmd *cobra.Command, args []string) {
 	}
 	links, err := govcloudair.GetOrgVdc(client, &client.VCDORGHREF)
 
-	fmt.Println(links)
-
-	// GET VDC FROM ORG VCDTOKEN ETC
-
-	// org, err := instance.GetOrg(client)
-	// if err != nil {
-	// 	log.Fatalf("error Getting Org: %s", err)
-	// }
-	//
 	yamlOutput, err := yaml.Marshal(&links)
 	if err != nil {
 		log.Fatalf("error marshaling: %s", err)

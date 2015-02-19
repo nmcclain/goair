@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/emccode/clue"
 	"github.com/emccode/goair/table"
 	"github.com/emccode/govcloudair"
 	"github.com/emccode/govcloudair/types/vcav1"
@@ -175,8 +176,8 @@ func authenticate(force bool) (client *govcloudair.ODClient, err error) {
 		return client, fmt.Errorf("error with NewClient: %s", err)
 	}
 
-	getValue := GetValue{}
-	if err := decodeGobFile("client", &getValue); err != nil {
+	getValue := clue.GetValue{}
+	if err := clue.DecodeGobFile("goair_client", &getValue); err != nil {
 		return &govcloudair.ODClient{}, fmt.Errorf("Problem with client decodeGobFile", err)
 	}
 
@@ -186,7 +187,7 @@ func authenticate(force bool) (client *govcloudair.ODClient, err error) {
 			return client, fmt.Errorf("error Authenticating: %s", err)
 		}
 
-		err = encodeGobFile("client", UseValue{
+		err = clue.EncodeGobFile("goair_client", clue.UseValue{
 			VarMap: map[string]string{
 				"VAToken": client.VAToken,
 			},
@@ -200,7 +201,7 @@ func authenticate(force bool) (client *govcloudair.ODClient, err error) {
 }
 
 func cmdLogin(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
+	initConfig(cmd, "goair_ondemand", true, map[string]FlagValue{})
 	_, err := authenticate(true)
 	if err != nil {
 		log.Fatalf("failed authenticating: %s", err)
@@ -208,7 +209,7 @@ func cmdLogin(cmd *cobra.Command, args []string) {
 }
 
 func cmdLogout(cmd *cobra.Command, args []string) {
-	err := deleteGobFile("client")
+	err := clue.DeleteGobFile("goair_client")
 	if err != nil {
 		if os.IsExist(err) {
 			log.Fatalf("failed to delete client gob file: %s", err)
@@ -217,7 +218,7 @@ func cmdLogout(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetPlans(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
+	initConfig(cmd, "goair_ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatalf("failed authenticating: %s", err)
@@ -244,7 +245,7 @@ func cmdGetPlans(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
+	initConfig(cmd, "goair_ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(true)
 	if err != nil {
 		log.Fatal(err)
@@ -258,7 +259,7 @@ func cmdGetServiceGroupIds(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetInstances(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
+	initConfig(cmd, "goair_ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
@@ -279,7 +280,7 @@ func cmdGetInstances(cmd *cobra.Command, args []string) {
 }
 
 func cmdNewInstance(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
+	initConfig(cmd, "goair_ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
@@ -305,7 +306,7 @@ func cmdNewInstance(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetUsers(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "ondemand", true, map[string]FlagValue{})
+	initConfig(cmd, "goair_ondemand", true, map[string]FlagValue{})
 	client, err := authenticate(false)
 	if err != nil {
 		log.Fatal(err)
@@ -327,7 +328,7 @@ func cmdGetUsers(cmd *cobra.Command, args []string) {
 }
 
 func cmdGetBillableCosts(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "ondemand", true, map[string]FlagValue{
+	initConfig(cmd, "goair_ondemand", true, map[string]FlagValue{
 		"servicegroupid": {serviceGroupId, true, false, ""},
 	})
 	client, err := authenticate(false)

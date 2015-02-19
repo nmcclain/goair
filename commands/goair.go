@@ -1,13 +1,12 @@
 package commands
 
 import (
-	"bufio"
-	"encoding/gob"
 	"fmt"
 	"log"
 	"os"
-	"runtime"
 	"strings"
+
+	"github.com/emccode/clue"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -23,14 +22,6 @@ var (
 	planID         string
 	region         string
 )
-
-type UseValue struct {
-	VarMap map[string]string
-}
-
-type GetValue struct {
-	VarMap map[string]*string
-}
 
 type FlagValue struct {
 	value      string
@@ -104,14 +95,14 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 		} else {
 			if field.overrideby != "" && cmdFlags.Lookup(field.overrideby).Changed == false && viper.GetString(field.overrideby) == "" {
 				if viper.GetString(key) == "" {
-					if err := setGobValues(cmd, "compute", key); err != nil {
+					if err := setGobValues(cmd, "goair_compute", key); err != nil {
 						log.Fatal(err)
 					}
 				}
 			} else {
 				if field.overrideby == "" {
 					if viper.GetString(key) == "" {
-						if err := setGobValues(cmd, "compute", key); err != nil {
+						if err := setGobValues(cmd, "goair_compute", key); err != nil {
 							log.Fatal(err)
 						}
 						for removeKey, field := range defaultFlags {
@@ -180,76 +171,9 @@ func InitConfig() {
 	viper.SetEnvPrefix("VCLOUDAIR")
 }
 
-func deleteGobFile(suffix string) (err error) {
-	fileLocation := fmt.Sprintf("%vgoair_%v.gob", os.TempDir(), suffix)
-	err = os.Remove(fileLocation)
-	if err != nil {
-		return fmt.Errorf("Problem removing file:", err)
-	}
-	return nil
-}
-
-func encodeGobFile(suffix string, useValue UseValue) (err error) {
-	fileLocation := fmt.Sprintf("%vgoair_%v.gob", os.TempDir(), suffix)
-	file, err := os.Create(fileLocation)
-	if err != nil {
-		return fmt.Errorf("Problem creating file:", err)
-	}
-
-	if runtime.GOOS != "windows" {
-		if err = file.Chmod(0600); err != nil {
-			return fmt.Errorf("Problem setting persmission onfile:", err)
-		}
-	}
-
-	defer func() {
-		if err := file.Close(); err != nil {
-			log.Fatal("Problem closing file:", err)
-		}
-	}()
-
-	fileWriter := bufio.NewWriter(file)
-
-	encoder := gob.NewEncoder(fileWriter)
-	err = encoder.Encode(useValue)
-	//fmt.Println(useValue)
-	if err != nil {
-		return fmt.Errorf("Problem encoding gob:", err)
-	}
-	fileWriter.Flush()
-	return
-}
-
-func decodeGobFile(suffix string, getValue *GetValue) (err error) {
-	fileLocation := fmt.Sprintf("%vgoair_%v.gob", os.TempDir(), suffix)
-	file, err := os.Open(fileLocation)
-	if err != nil {
-		if os.IsExist(err) {
-			log.Fatal("Problem opening file:", err)
-		} else {
-			return nil
-		}
-	}
-
-	defer func() {
-		if err := file.Close(); err != nil {
-			log.Fatal("Problem closing file:", err)
-		}
-	}()
-
-	fileReader := bufio.NewReader(file)
-
-	decoder := gob.NewDecoder(fileReader)
-	err = decoder.Decode(&getValue)
-	if err != nil {
-		return fmt.Errorf("Problem decoding file:", err)
-	}
-	return
-}
-
 func setGobValues(cmd *cobra.Command, suffix string, field string) (err error) {
-	getValue := GetValue{}
-	if err := decodeGobFile(suffix, &getValue); err != nil {
+	getValue := clue.GetValue{}
+	if err := clue.DecodeGobFile(suffix, &getValue); err != nil {
 		return fmt.Errorf("Problem with decodeGobFile", err)
 	}
 	for key, _ := range getValue.VarMap {
