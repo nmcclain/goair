@@ -182,7 +182,7 @@ func authenticate(force bool) (client *govcloudair.Client, err error) {
 	}
 
 	if force || getValue.VarMap["VAToken"] == nil {
-		err = client.Authenticate("", "", "", "")
+		err = client.AuthenticateOD("", "")
 		if err != nil {
 			return client, fmt.Errorf("error Authenticating: %s", err)
 		}

@@ -93,7 +93,7 @@ func authenticatecompute(client *govcloudair.Client, force bool, ia string) (err
 		instanceAttributes := vcatypes.InstanceAttributes{}
 		json.Unmarshal([]byte(ia), &instanceAttributes)
 
-		err = client.GetBackendAuth(instanceAttributes)
+		err = client.GetBackendAuthOD(instanceAttributes)
 		if err != nil {
 			return fmt.Errorf("error Authenticating: %s", err)
 		}

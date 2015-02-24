@@ -32,6 +32,7 @@ A ```use``` command can be used in certain scenarios where the specified flags w
       VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/api" \
       VCLOUDAIR_SHOW_RESPONSE='true' \
       VCLOUDAIR_SHOW_BODY='true' \
+      VCLOUDAIR_INSCURE='true' \
       ./goair
 
 
