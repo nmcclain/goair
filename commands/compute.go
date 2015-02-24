@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 
 	"github.com/emccode/clue"
 	"github.com/emccode/govcloudair"
 	"github.com/emccode/govcloudair/types/vcav1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	types "github.com/vmware/govcloudair/types/v56"
 	"gopkg.in/yaml.v1"
 )
 
@@ -23,6 +25,7 @@ var computeCmdV *cobra.Command
 
 func init() {
 	addCommandsCompute()
+	addCommandsComputeVApp()
 	computeCmd.PersistentFlags().StringVar(&username, "username", "", "VCLOUDAIR_USERNAME")
 	computeCmd.PersistentFlags().StringVar(&password, "password", "", "VCLOUDAIR_PASSWORD")
 	computeCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "", "VCLOUDAIR_ENDPOINT")
@@ -34,6 +37,12 @@ func init() {
 	computegetCmd.Flags().StringVar(&planID, "planid", "", "VCLOUDAIR_PLANID")
 	computeuseCmd.Flags().StringVar(&region, "region", "", "VCLOUDAIR_REGION")
 	computegetCmd.Flags().StringVar(&region, "region", "", "VCLOUDAIR_REGION")
+	computeuseCmd.Flags().StringVar(&vdcname, "vdcname", "", "VCLOUDAIR_VDCNAME")
+	computeuseCmd.Flags().StringVar(&vdchref, "vdchref", "", "VCLOUDAIR_VDCHREF")
+	vappCmd.Flags().StringVar(&vdchref, "vappname", "", "VCLOUDAIR_VAPPNAME")
+	vappCmd.Flags().StringVar(&vdchref, "vdchref", "", "VCLOUDAIR_VDCHREF")
+	vappgetCmd.Flags().StringVar(&vdchref, "vappname", "", "VCLOUDAIR_VAPPNAME")
+	vappgetCmd.Flags().StringVar(&vdchref, "vdchref", "", "VCLOUDAIR_VDCHREF")
 
 	computeCmdV = computeCmd
 
@@ -60,12 +69,17 @@ var computegetCmd = &cobra.Command{
 func addCommandsCompute() {
 	computeCmd.AddCommand(computeuseCmd)
 	computeCmd.AddCommand(computegetCmd)
+	computeCmd.AddCommand(vappCmd)
 }
 
-func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (err error) {
+func addCommandsComputeVApp() {
+	vappCmd.AddCommand(vappgetCmd)
+}
+
+func authenticatecompute(client *govcloudair.Client, force bool, ia string) (err error) {
 	getValue := clue.GetValue{}
 	if err := clue.DecodeGobFile("goair_compute", &getValue); err != nil {
-		return fmt.Errorf("Problem with client DecodeGobFile", err)
+		return fmt.Errorf("Problem with client DecodeGobFile: %v", err)
 	}
 
 	if ia != "" {
@@ -74,7 +88,7 @@ func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (e
 		}
 	}
 
-	if force || *getValue.VarMap["VCDToken"] == "" {
+	if force || *getValue.VarMap["VCDToken"] == "" || *getValue.VarMap["VCDAuthHeader"] == "" {
 
 		instanceAttributes := vcatypes.InstanceAttributes{}
 		json.Unmarshal([]byte(ia), &instanceAttributes)
@@ -84,23 +98,13 @@ func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (e
 			return fmt.Errorf("error Authenticating: %s", err)
 		}
 
-		var planid string
-		var region string
-
-		if getValue.VarMap["planID"] != nil {
-			planid = *getValue.VarMap["planID"]
-		}
-
-		if getValue.VarMap["region"] != nil {
-			region = *getValue.VarMap["region"]
-		}
-
 		err = clue.EncodeGobFile("goair_compute", clue.UseValue{
 			VarMap: map[string]string{
-				"planID":             planid,
-				"region":             region,
+				"planID":             viper.GetString("planid"),
+				"region":             viper.GetString("region"),
 				"instanceAttributes": ia,
 				"VCDToken":           client.VCDToken,
+				"VCDAuthHeader":      client.VCDAuthHeader,
 			},
 		})
 		if err != nil {
@@ -109,15 +113,61 @@ func authenticatecompute(client *govcloudair.ODClient, force bool, ia string) (e
 
 	} else {
 		client.VCDToken = *getValue.VarMap["VCDToken"]
+		client.VCDAuthHeader = *getValue.VarMap["VCDAuthHeader"]
 	}
 
 	return nil
 }
 
-func cmdUseCompute(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "goair_compute", false, map[string]FlagValue{
+func cmdGetCompute(cmd *cobra.Command, args []string) {
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
 		"planid": {planID, true, false, ""},
 		"region": {region, true, false, "planid"},
+	})
+
+	client, err := authenticate(false)
+	if err != nil {
+		log.Fatalf("failed authenticating: %s", err)
+	}
+
+	instanceList, err := client.GetInstances()
+	if err != nil {
+		log.Fatalf("error Getting instances: %s", err)
+	}
+
+	instance := govcloudair.Instance{}
+	for _, arg := range instanceList.Instances {
+		if (viper.GetString("region") != "" && arg.Region == viper.GetString("region")) || (viper.GetString("planid") != "" && arg.PlanID == viper.GetString("planid")) {
+			instance = govcloudair.Instance(arg)
+			break
+		}
+		log.Fatalf("Couldn't find region or planid")
+	}
+
+	err = authenticatecompute(client, true, instance.InstanceAttributes)
+	if err != nil {
+		log.Fatalf("Err authenticating compute: %s", err)
+	}
+
+	links, err := govcloudair.GetOrgVdc(client, &client.VCDORGHREF)
+	if err != nil {
+		log.Fatalf("Err geting orgvdc: %s", err)
+	}
+
+	yamlOutput, err := yaml.Marshal(&links)
+	if err != nil {
+		log.Fatalf("error marshaling: %s", err)
+	}
+	fmt.Println(string(yamlOutput))
+
+}
+
+func cmdUseCompute(cmd *cobra.Command, args []string) {
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
+		"planid":  {planID, true, false, ""},
+		"region":  {region, true, false, "planid"},
+		"vdchref": {vdchref, true, false, ""},
+		"vdcname": {vdcname, true, false, "vdchref"},
 	})
 
 	client, err := authenticate(false)
@@ -143,20 +193,63 @@ func cmdUseCompute(cmd *cobra.Command, args []string) {
 		log.Fatalf("Error authenticating compute: %s", err)
 	}
 
-	if planID != "" {
-		fmt.Println(fmt.Sprintf("Set to use PlanID: %v", planID))
+	links, err := govcloudair.GetOrgVdc(client, &client.VCDORGHREF)
+
+	useLink := types.Link{}
+	for _, link := range links {
+		//fmt.Printf("vdchref: %v\nvdcname: %v\n", viper.GetString("vdchref"), viper.GetString("vdcname"))
+		if (viper.GetString("vdchref") != "" && link.HREF == viper.GetString("vdchref")) ||
+			(viper.GetString("vdcname") != "" && link.Name == viper.GetString("vdcname")) {
+			useLink = link
+			break
+		}
 	}
 
-	if region != "" {
-		fmt.Println(fmt.Sprintf("Set to use region: %v", region))
-	}
+	if useLink.Name != "" {
+		err = clue.EncodeGobFile("goair_compute", clue.UseValue{
+			VarMap: map[string]string{
+				"planID":             viper.GetString("planid"),
+				"region":             viper.GetString("region"),
+				"vdchref":            useLink.HREF,
+				"instanceAttributes": instance.InstanceAttributes,
+				"VCDToken":           client.VCDToken,
+				"VCDAuthHeader":      client.VCDAuthHeader,
+			},
+		})
 
+		yamlOutput, err := yaml.Marshal(&useLink)
+		if err != nil {
+			log.Fatalf("error marshaling: %s", err)
+		}
+		fmt.Println(string(yamlOutput))
+
+	} else {
+		log.Fatalf("Failed to find VDC %v%v", vdcname, vdchref)
+	}
 }
 
-func cmdGetCompute(cmd *cobra.Command, args []string) {
+var vappCmd = &cobra.Command{
+	Use:   "vapp",
+	Short: "vapp",
+	Long:  `vapp`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Usage()
+	},
+}
+
+var vappgetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "Get a vapp",
+	Long:  `Get a vapp`,
+	Run:   cmdGetVApp,
+}
+
+func cmdGetVApp(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid": {planID, true, false, ""},
-		"region": {region, true, false, "planid"},
+		"planid":             {planID, true, false, ""},
+		"region":             {region, true, false, "planid"},
+		"vdchref":            {vdchref, true, false, ""},
+		"instanceAttributes": {instanceAttributes, true, false, ""},
 	})
 
 	client, err := authenticate(false)
@@ -164,26 +257,32 @@ func cmdGetCompute(cmd *cobra.Command, args []string) {
 		log.Fatalf("failed authenticating: %s", err)
 	}
 
-	instanceList, err := client.GetInstances()
+	err = authenticatecompute(client, false, "")
 	if err != nil {
-		log.Fatalf("error Getting instances: %s", err)
+		log.Fatalf("Error authenticating compute: %s", err)
 	}
 
-	instance := govcloudair.Instance{}
-	for _, arg := range instanceList.Instances {
-		if (viper.GetString("region") != "" && arg.Region == region) || (viper.GetString("planid") != "" && arg.PlanID == planID) {
-			instance = govcloudair.Instance(arg)
-			break
-		}
-	}
-
-	err = authenticatecompute(client, true, instance.InstanceAttributes)
+	vdcuri, err := url.Parse(viper.GetString("vdchref"))
 	if err != nil {
-		fmt.Errorf("Errgeting authenticating compute: %s", err)
+		log.Fatal(err)
 	}
-	links, err := govcloudair.GetOrgVdc(client, &client.VCDORGHREF)
 
-	yamlOutput, err := yaml.Marshal(&links)
+	client.VCDVDCHREF = *vdcuri
+
+	// vdc, err := client.RetrieveVDC()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	vdc := govcloudair.NewVdc(client)
+	vdc.Vdc = &types.Vdc{HREF: client.VCDVDCHREF.String()}
+
+	vapps, err := vdc.GetVApp()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	yamlOutput, err := yaml.Marshal(&vapps)
 	if err != nil {
 		log.Fatalf("error marshaling: %s", err)
 	}

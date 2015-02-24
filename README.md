@@ -70,10 +70,12 @@ This will be filled out as there are more things added.
       goair ondemand instances get
       goair ondemand users get
       goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
-      goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
-      goair compute use --region=41400e74-4445-49ef-90a4-98da4ccfb16c
       goair compute get
       goair compute get --region=us-california-1-3.vchs.vmware.com
+      goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
+      goair compute use --region=us-california-1-3.vchs.vmware.com --name=VDC4
+      goair vapp get
+
 
 
 ##Examples

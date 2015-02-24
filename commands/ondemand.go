@@ -170,7 +170,7 @@ func addCommandsOnDemand() {
 	ondemandbillablecostsCmd.AddCommand(ondemandbillablecostsgetCmd)
 }
 
-func authenticate(force bool) (client *govcloudair.ODClient, err error) {
+func authenticate(force bool) (client *govcloudair.Client, err error) {
 	client, err = govcloudair.NewClient()
 	if err != nil {
 		return client, fmt.Errorf("error with NewClient: %s", err)
@@ -178,7 +178,7 @@ func authenticate(force bool) (client *govcloudair.ODClient, err error) {
 
 	getValue := clue.GetValue{}
 	if err := clue.DecodeGobFile("goair_client", &getValue); err != nil {
-		return &govcloudair.ODClient{}, fmt.Errorf("Problem with client decodeGobFile: %v", err)
+		return &govcloudair.Client{}, fmt.Errorf("Problem with client decodeGobFile: %v", err)
 	}
 
 	if force || getValue.VarMap["VAToken"] == nil {
@@ -206,6 +206,7 @@ func cmdLogin(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("failed authenticating: %s", err)
 	}
+	fmt.Println("Successfuly logged in to vCloud Air On Demand.")
 }
 
 func cmdLogout(cmd *cobra.Command, args []string) {

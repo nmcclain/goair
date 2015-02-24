@@ -14,13 +14,16 @@ import (
 )
 
 var (
-	cfgFile        string
-	username       string
-	password       string
-	endpoint       string
-	serviceGroupID string
-	planID         string
-	region         string
+	cfgFile            string
+	username           string
+	password           string
+	endpoint           string
+	serviceGroupID     string
+	planID             string
+	region             string
+	vdcname            string
+	vdchref            string
+	instanceAttributes string
 )
 
 //FlagValue struct
@@ -50,6 +53,7 @@ func Exec() {
 func AddCommands() {
 	GoairCmd.AddCommand(ondemandCmd)
 	GoairCmd.AddCommand(computeCmd)
+	GoairCmd.AddCommand(vappCmd)
 }
 
 var goairCmdV *cobra.Command
@@ -75,7 +79,27 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 	var fieldsMissing []string
 	var fieldsMissingRemove []string
 
+	type statusFlag struct {
+		key                        string
+		flagValue                  string
+		flagValueExists            bool
+		flagChanged                bool
+		keyOverrideBy              string
+		flagValueOverrideBy        string
+		flagValueOverrideByExists  bool
+		flagChangedOverrideBy      bool
+		viperValue                 string
+		viperValueExists           bool
+		viperValueOverrideBy       string
+		viperValueOverrideByExists bool
+		gobValue                   string
+		gobValueExists             bool
+		finalViperValue            string
+		setFrom                    string
+	}
+
 	cmdFlags := &pflag.FlagSet{}
+	var statusFlags []statusFlag
 
 	for key, field := range defaultFlags {
 		viper.BindEnv(key)
@@ -88,37 +112,87 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 		default:
 		}
 
-		if cmdFlags.Lookup(key).Changed {
-			if field.overrideby != "" {
-				if cmdFlags.Lookup(field.overrideby).Changed {
-					viper.Set(key, "")
-					continue
-				}
-			}
-			viper.Set(key, cmdFlags.Lookup(key).Value)
-		} else {
-			if field.overrideby != "" && cmdFlags.Lookup(field.overrideby).Changed == false && viper.GetString(field.overrideby) == "" {
-				if viper.GetString(key) == "" {
-					if err := setGobValues(cmd, "goair_compute", key); err != nil {
-						log.Fatal(err)
-					}
-				}
-			} else {
-				if field.overrideby == "" {
-					if viper.GetString(key) == "" {
-						if err := setGobValues(cmd, "goair_compute", key); err != nil {
-							log.Fatal(err)
-						}
-						for removeKey, field := range defaultFlags {
-							if key == field.overrideby && viper.GetString(field.overrideby) != "" {
-								viper.Set(removeKey, "")
-							}
-						}
+		var flagLookupValue string
+		var flagLookupChanged bool
 
-					}
-				}
+		if cmdFlags.Lookup(key) != nil {
+			flagLookupValue = cmdFlags.Lookup(key).Value.String()
+			flagLookupChanged = cmdFlags.Lookup(key).Changed
+		}
+
+		statusFlag := &statusFlag{
+			key:                  key,
+			flagValue:            flagLookupValue,
+			flagChanged:          flagLookupChanged,
+			viperValue:           viper.GetString(key),
+			viperValueOverrideBy: viper.GetString(field.overrideby),
+		}
+
+		if statusFlag.flagValue != "" {
+			statusFlag.flagValueExists = true
+		}
+		if statusFlag.flagValueOverrideBy != "" {
+			statusFlag.flagValueOverrideByExists = true
+		}
+		if statusFlag.viperValue != "" {
+			statusFlag.viperValueExists = true
+		}
+		if statusFlag.viperValueOverrideBy != "" {
+			statusFlag.viperValueOverrideByExists = true
+		}
+
+		if field.overrideby != "" {
+			statusFlag.keyOverrideBy = field.overrideby
+			if cmdFlags.Lookup(field.overrideby) != nil {
+				statusFlag.flagChangedOverrideBy = cmdFlags.Lookup(field.overrideby).Changed
+				statusFlag.flagValueOverrideBy = cmdFlags.Lookup(field.overrideby).Value.String()
 			}
 		}
+
+		statusFlags = append(statusFlags, *statusFlag)
+	}
+
+	if err := setGobValues(cmd, suffix, ""); err != nil {
+		log.Fatal(err)
+	}
+
+	for i := range statusFlags {
+		statusFlags[i].setFrom = "none"
+		statusFlags[i].gobValue = viper.GetString(statusFlags[i].key)
+		if statusFlags[i].gobValue != "" {
+			statusFlags[i].gobValueExists = true
+			statusFlags[i].setFrom = "gob"
+		}
+
+		if statusFlags[i].gobValue == statusFlags[i].viperValue {
+			if statusFlags[i].gobValueExists {
+				statusFlags[i].setFrom = "ConfigOrEnv"
+			} else {
+				statusFlags[i].setFrom = "none"
+			}
+		}
+
+		if statusFlags[i].flagValueOverrideByExists {
+			viper.Set(statusFlags[i].key, "")
+			statusFlags[i].setFrom = "flagValueOverrideByExists"
+			continue
+		}
+		if statusFlags[i].flagValueExists {
+			viper.Set(statusFlags[i].key, statusFlags[i].flagValue)
+			statusFlags[i].setFrom = "flagValueExists"
+			continue
+		}
+		if statusFlags[i].viperValueOverrideByExists {
+			viper.Set(statusFlags[i].key, "")
+			statusFlags[i].setFrom = "viperValueOverrideByExists"
+			continue
+		}
+
+	}
+
+	for _, statusFlag := range statusFlags {
+		statusFlag.finalViperValue = viper.GetString(statusFlag.key)
+		//fmt.Printf("%+v\n", statusFlag)
 	}
 
 	if checkValues {
@@ -155,7 +229,6 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 		}
 		//fmt.Println(viper.GetString(key))
 	}
-
 }
 
 //InitConfig function
@@ -182,6 +255,13 @@ func setGobValues(cmd *cobra.Command, suffix string, field string) (err error) {
 	if err := clue.DecodeGobFile(suffix, &getValue); err != nil {
 		return fmt.Errorf("Problem with decodeGobFile: %v", err)
 	}
+
+	// for key, value := range getValue.VarMap {
+	// 	fmt.Printf("%v: %v\n", key, *value)
+	// }
+	// fmt.Printf("%+v\n", getValue.VarMap)
+	// fmt.Println()
+
 	for key := range getValue.VarMap {
 		lowerKey := strings.ToLower(key)
 		if field != "" && field != lowerKey {
