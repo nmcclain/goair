@@ -24,6 +24,8 @@ var (
 	vdcname            string
 	vdchref            string
 	instanceAttributes string
+	vappname           string
+	vappid             string
 )
 
 //FlagValue struct

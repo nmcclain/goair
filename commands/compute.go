@@ -24,7 +24,6 @@ var computeCmdV *cobra.Command
 
 func init() {
 	addCommandsCompute()
-	addCommandsComputeVApp()
 	computeCmd.PersistentFlags().StringVar(&username, "username", "", "VCLOUDAIR_USERNAME")
 	computeCmd.PersistentFlags().StringVar(&password, "password", "", "VCLOUDAIR_PASSWORD")
 	computeCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "", "VCLOUDAIR_ENDPOINT")
@@ -64,11 +63,6 @@ var computegetCmd = &cobra.Command{
 func addCommandsCompute() {
 	computeCmd.AddCommand(computeuseCmd)
 	computeCmd.AddCommand(computegetCmd)
-	computeCmd.AddCommand(vappCmd)
-}
-
-func addCommandsComputeVApp() {
-	vappCmd.AddCommand(vappgetCmd)
 }
 
 func authenticatecompute(client *govcloudair.Client, force bool, ia string) (err error) {

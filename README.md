@@ -76,8 +76,17 @@ This will be filled out as there are more things added.
       goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
       goair compute use --region=us-california-1-3.vchs.vmware.com --name=VDC4
       goair vapp get
-
-
+      goair vapp get --vappname=test8
+      goair vapp get --vappid=urn:vcloud:vapp:789d295e-296f-4679-94a4-c17ba36c3d62
+      goair vapp action poweron --vappname=vApp_clintonskitson@gmail.com_5
+      goair vapp action poweroff --vappname=vApp_clintonskitson@gmail.com_5
+      goair vapp action reboot --vappname=vApp_clintonskitson@gmail.com_5
+      goair vapp action reset --vappname=vApp_clintonskitson@gmail.com_5
+      goair vapp action suspend --vappname=vApp_clintonskitson@gmail.com_5
+      goair vapp action shutdown --vappname=vApp_clintonskitson@gmail.com_5
+      goair vapp action undeploy --vappname=vApp_clintonskitson@gmail.com_5
+      goair vapp action deploy --vappname=vApp_clintonskitson@gmail.com_5
+      goair vapp action delete --vappname=vApp_clintonskitson@gmail.com_5
 
 ##Examples
 Here is the help screen that is available at every level using ```help``` or ```--help```.
