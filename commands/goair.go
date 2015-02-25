@@ -29,6 +29,9 @@ var (
 	catalogname        string
 	catalogid          string
 	orghref            string
+	catalogitemname    string
+	vdcnetworkname     string
+	runasync           string
 )
 
 //FlagValue struct
@@ -60,6 +63,7 @@ func AddCommands() {
 	GoairCmd.AddCommand(computeCmd)
 	GoairCmd.AddCommand(vappCmd)
 	GoairCmd.AddCommand(catalogCmd)
+	GoairCmd.AddCommand(orgvdcnetworkCmd)
 }
 
 var goairCmdV *cobra.Command
@@ -198,7 +202,9 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 
 	for _, statusFlag := range statusFlags {
 		statusFlag.finalViperValue = viper.GetString(statusFlag.key)
-		//fmt.Printf("%+v\n", statusFlag)
+		if os.Getenv("VCLOUDAIR_SHOW_FLAG") == "true" {
+			fmt.Printf("%+v\n", statusFlag)
+		}
 	}
 
 	if checkValues {
@@ -207,13 +213,13 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 				if viper.GetString(key) != "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
 					fieldsMissingRemove = append(fieldsMissingRemove, field.overrideby)
 				} else {
-					if viper.GetString(key) == "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
+					//if viper.GetString(key) == "" && (field.overrideby != "" && viper.GetString(field.overrideby) == "") {
+					if viper.GetString(key) == "" {
 						fieldsMissing = append(fieldsMissing, key)
 					}
 				}
 			}
 		}
-
 	Loop1:
 		for _, fieldMissingRemove := range fieldsMissingRemove {
 			for i, fieldMissing := range fieldsMissing {
