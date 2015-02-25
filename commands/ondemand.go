@@ -193,7 +193,6 @@ func authenticate(force bool) (client *govcloudair.Client, err error) {
 			},
 		})
 	} else {
-		fmt.Println(client.VAToken)
 		client.VAToken = *getValue.VarMap["VAToken"]
 	}
 

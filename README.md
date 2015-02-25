@@ -87,6 +87,8 @@ This will be filled out as there are more things added.
       goair vapp action undeploy --vappname=vappname
       goair vapp action deploy --vappname=vappname
       goair vapp action delete --vappname=vappname
+      goair catalog get
+      goair catalog get items --catalogname=catalog1
 
 ##Examples
 Here is the help screen that is available at every level using ```help``` or ```--help```.

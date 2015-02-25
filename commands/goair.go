@@ -26,6 +26,9 @@ var (
 	instanceAttributes string
 	vappname           string
 	vappid             string
+	catalogname        string
+	catalogid          string
+	orghref            string
 )
 
 //FlagValue struct
@@ -56,6 +59,7 @@ func AddCommands() {
 	GoairCmd.AddCommand(ondemandCmd)
 	GoairCmd.AddCommand(computeCmd)
 	GoairCmd.AddCommand(vappCmd)
+	GoairCmd.AddCommand(catalogCmd)
 }
 
 var goairCmdV *cobra.Command
@@ -258,11 +262,13 @@ func setGobValues(cmd *cobra.Command, suffix string, field string) (err error) {
 		return fmt.Errorf("Problem with decodeGobFile: %v", err)
 	}
 
-	// for key, value := range getValue.VarMap {
-	// 	fmt.Printf("%v: %v\n", key, *value)
-	// }
-	// fmt.Printf("%+v\n", getValue.VarMap)
-	// fmt.Println()
+	if os.Getenv("VCLOUDAIR_SHOW_GOB") == "true" {
+		for key, value := range getValue.VarMap {
+			fmt.Printf("%v: %v\n", key, *value)
+		}
+		fmt.Printf("%+v\n", getValue.VarMap)
+		fmt.Println()
+	}
 
 	for key := range getValue.VarMap {
 		lowerKey := strings.ToLower(key)

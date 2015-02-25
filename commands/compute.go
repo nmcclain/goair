@@ -94,6 +94,8 @@ func authenticatecompute(client *govcloudair.Client, force bool, ia string) (err
 				"instanceAttributes": ia,
 				"VCDToken":           client.VCDToken,
 				"VCDAuthHeader":      client.VCDAuthHeader,
+				"orghref":            client.VCDORGHREF.String(),
+				"vdchref":            viper.GetString("vdchref"),
 			},
 		})
 		if err != nil {
@@ -203,6 +205,7 @@ func cmdUseCompute(cmd *cobra.Command, args []string) {
 				"instanceAttributes": instance.InstanceAttributes,
 				"VCDToken":           client.VCDToken,
 				"VCDAuthHeader":      client.VCDAuthHeader,
+				"orghref":            client.VCDORGHREF.String(),
 			},
 		})
 
