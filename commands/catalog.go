@@ -22,7 +22,7 @@ func init() {
 	cataloggetCmd.Flags().StringVar(&catalogitemname, "catalogitemname", "", "VCLOUDAIR_CATALOGITEMNAME")
 	catalogdeployCmd.Flags().StringVar(&catalogname, "catalogname", "", "VCLOUDAIR_CATALOGNAME")
 	catalogdeployCmd.Flags().StringVar(&catalogitemname, "catalogitemname", "", "VCLOUDAIR_CATALOGITEMNAME")
-	catalogdeployCmd.Flags().StringVar(&vappname, "vappname", "", "VCLOUDAIR_VAPPNAME")
+	catalogdeployCmd.Flags().StringVar(&vmname, "vmname", "", "VCLOUDAIR_VMNAME")
 	catalogdeployCmd.Flags().StringVar(&vdcnetworkname, "vdcnetworkname", "", "VCLOUDAIR_VDCNETWORKNAME")
 	catalogdeployCmd.Flags().StringVar(&runasync, "runasync", "", "VCLOUDAIR_RUNASYNC")
 
@@ -163,7 +163,7 @@ func cmdDeployCatalog(cmd *cobra.Command, args []string) {
 		"vdchref":         {vdchref, true, false, ""},
 		"catalogname":     {catalogname, true, false, ""},
 		"catalogitemname": {catalogitemname, true, false, ""},
-		"vappname":        {vappname, true, false, ""},
+		"vmname":          {vmname, true, false, ""},
 		"vdcnetworkname":  {vdcnetworkname, true, false, ""},
 	})
 
@@ -225,7 +225,7 @@ func cmdDeployCatalog(cmd *cobra.Command, args []string) {
 	}
 
 	vapp := govcloudair.NewVApp(client)
-	task, err := vapp.ComposeVApp(vdcNetwork, vappTemplate, viper.GetString("vappname"), "")
+	task, err := vapp.ComposeVApp(vdcNetwork, vappTemplate, "", "", viper.GetString("vmname"))
 	if err != nil {
 		log.Fatalf("error composing vapp: %v", err)
 	}

@@ -96,8 +96,8 @@ This will be filled out as there are more things added.
       goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vappname="TEST"
       goair orgvdcnetwork get
       goair orgvdcnetwork get --networkname=default-routed-network
-      goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vappname="Test2" --vdcnetworkname=default-routed-network
-      
+      goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vmname="Test2" --vdcnetworkname=default-routed-network
+
 
 
 ##Examples

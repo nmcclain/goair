@@ -31,6 +31,7 @@ var (
 	orghref            string
 	catalogitemname    string
 	vdcnetworkname     string
+	vmname             string
 	runasync           string
 )
 
