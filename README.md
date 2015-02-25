@@ -89,14 +89,14 @@ This will be filled out as there are more things added.
       goair vapp action undeploy --vappname=vappname
       goair vapp action deploy --vappname=vappname
       goair vapp action delete --vappname=vappname
+      goair orgvdcnetwork get
+      goair orgvdcnetwork get --networkname=default-routed-network
       goair catalog get
       goair catalog get --catalogname="Public Catalog"
       goair catalog get --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit"
       goair catalog get vapptemplate --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit"
-      goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vappname="TEST"
-      goair orgvdcnetwork get
-      goair orgvdcnetwork get --networkname=default-routed-network
       goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vmname="Test2" --vdcnetworkname=default-routed-network
+      goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vmname="Test2" --vdcnetworkname=default-routed-network --runasync=true
 
 
 

@@ -165,6 +165,7 @@ func cmdDeployCatalog(cmd *cobra.Command, args []string) {
 		"catalogitemname": {catalogitemname, true, false, ""},
 		"vmname":          {vmname, true, false, ""},
 		"vdcnetworkname":  {vdcnetworkname, true, false, ""},
+		"runasync":        {runasync, false, false, ""},
 	})
 
 	client, err := authenticate(false)
