@@ -128,7 +128,7 @@ func cmdGetCatalog(cmd *cobra.Command, args []string) {
 		log.Fatalf("err: problem finding catalog: %v", err)
 	}
 
-	if args[0] == "" {
+	if len(args) == 0 {
 		yamlOutput, err := yaml.Marshal(&catalogItem)
 		if err != nil {
 			log.Fatalf("error marshaling: %s", err)
@@ -137,7 +137,7 @@ func cmdGetCatalog(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if args[0] == "vapptemplate" {
+	if len(args) > 0 && args[0] == "vapptemplate" {
 		vappTemplate, err := catalogItem.GetVAppTemplate()
 		if err != nil {
 			log.Fatalf("err: problem getting VApp Template: %v", err)

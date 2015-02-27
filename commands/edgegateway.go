@@ -230,7 +230,7 @@ func cmdNewNatEdgeGateway(cmd *cobra.Command, args []string) {
 		"instanceAttributes": {instanceAttributes, true, false, ""},
 	})
 
-	if args[0] != "1to1" {
+	if len(args) == 0 || args[0] != "1to1" {
 		log.Fatalf("Missing type of NAT, currently 1to1 is supported.")
 	}
 
@@ -295,7 +295,7 @@ func cmdRemoveNatEdgeGateway(cmd *cobra.Command, args []string) {
 		"instanceAttributes": {instanceAttributes, true, false, ""},
 	})
 
-	if args[0] != "1to1" {
+	if len(args[0]) == 0 || args[0] != "1to1" {
 		log.Fatalf("Missing type of NAT, currently 1to1 is supported.")
 	}
 

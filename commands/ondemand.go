@@ -28,6 +28,7 @@ func init() {
 	ondemandCmd.PersistentFlags().StringVar(&username, "username", "", "VCLOUDAIR_USERNAME")
 	ondemandCmd.PersistentFlags().StringVar(&password, "password", "", "VCLOUDAIR_PASSWORD")
 	ondemandCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "", "VCLOUDAIR_ENDPOINT")
+	ondemandCmd.PersistentFlags().StringVar(&insecure, "insecure", "", "VCLOUDAIR_INSECURE")
 	viper.SetDefault("endpoint", "https://us-california-1-3.vchs.vmware.com/api")
 
 	ondemandbillablecostsCmd.Flags().StringVar(&serviceGroupID, "servicegroupid", "", "VCLOUDAIR_SERVICEGROUPID")

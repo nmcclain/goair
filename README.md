@@ -73,24 +73,12 @@ This will be filled out as there are more things added.
       goair ondemand instances get
       goair ondemand users get
       goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
+      goair orgvdcnetwork get
+      goair orgvdcnetwork get --networkname=default-routed-network
       goair compute get
       goair compute get --region=us-california-1-3.vchs.vmware.com
       goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
       goair compute use --region=us-california-1-3.vchs.vmware.com --name=VDC4
-      goair vapp get
-      goair vapp get --vappname=test8
-      goair vapp get --vappid=urn:vcloud:vapp:789d295e-296f-4679-94a4-c17ba36c3d62
-      goair vapp action poweron --vappname=vappname
-      goair vapp action poweroff --vappname=vappname
-      goair vapp action reboot --vappname=vappname
-      goair vapp action reset --vappname=vappname
-      goair vapp action suspend --vappname=vappname
-      goair vapp action shutdown --vappname=vappname
-      goair vapp action undeploy --vappname=vappname
-      goair vapp action deploy --vappname=vappname
-      goair vapp action delete --vappname=vappname
-      goair orgvdcnetwork get
-      goair orgvdcnetwork get --networkname=default-routed-network
       goair catalog get
       goair catalog get --catalogname="Public Catalog"
       goair catalog get --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit"
@@ -105,11 +93,26 @@ This will be filled out as there are more things added.
       goair edgegateway get gatewayinteface
       goair edgegateway get iprange
       goair edgegateway get publicip
-
       goair edgegateway new-firewallrule --destinationport="22" --sourceport="Any" --destinationip="107.189.92.154" --sourceip="Any" --protocol=tcp --description="outside_in"
       goair edgegateway new-firewallrule --destinationport="Any" --sourceport="Any" --destinationip="107.189.92.154" --sourceip="Any" --protocol=icmp --description="outside_in_icmp"
       goair edgegateway new-firewallrule --destinationport="Any" --sourceport="Any" --destinationip="Any" --sourceip="192.168.109.0/24" --protocol=tcp --description="inside_out"
       goair edgegateway remove-firewallrule --ruleid=1
+      goair vapp get
+      goair vapp get --vappname=test8
+      goair vapp get-status --vappname=test8
+      goair vapp get --vappid=urn:vcloud:vapp:789d295e-296f-4679-94a4-c17ba36c3d62
+      goair vapp get vm --vappname=test8
+      goair vapp update --vappname=test8 --memorysizemb=2048 --cpucount=4
+      goair vapp action poweron --vappname=vappname
+      goair vapp action poweroff --vappname=vappname
+      goair vapp action reboot --vappname=vappname
+      goair vapp action reset --vappname=vappname
+      goair vapp action suspend --vappname=vappname
+      goair vapp action shutdown --vappname=vappname
+      goair vapp action undeploy --vappname=vappname
+      goair vapp action deploy --vappname=vappname
+      goair vapp action delete --vappname=vappname
+      goair vapp get guestcustomization --vappname=Test6-VApp
 
 
 ##Examples

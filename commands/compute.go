@@ -27,6 +27,7 @@ func init() {
 	computeCmd.PersistentFlags().StringVar(&username, "username", "", "VCLOUDAIR_USERNAME")
 	computeCmd.PersistentFlags().StringVar(&password, "password", "", "VCLOUDAIR_PASSWORD")
 	computeCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "", "VCLOUDAIR_ENDPOINT")
+	computeCmd.PersistentFlags().StringVar(&insecure, "insecure", "", "VCLOUDAIR_INSECURE")
 	viper.SetDefault("endpoint", "https://us-california-1-3.vchs.vmware.com/")
 
 	computeCmd.Flags().StringVar(&planID, "planid", "", "VCLOUDAIR_PLANID")

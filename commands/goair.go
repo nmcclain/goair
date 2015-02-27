@@ -18,6 +18,7 @@ var (
 	username           string
 	password           string
 	endpoint           string
+	insecure           string
 	serviceGroupID     string
 	planID             string
 	region             string
@@ -42,6 +43,8 @@ var (
 	destinationport    string
 	protocol           string
 	ruleid             string
+	memorysizemb       string
+	cpucount           string
 )
 
 //FlagValue struct
@@ -91,6 +94,7 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 		"username": {username, true, false, ""},
 		"password": {password, true, false, ""},
 		"endpoint": {endpoint, true, false, ""},
+		"insecure": {insecure, false, false, ""},
 	}
 
 	for key, field := range flags {
@@ -263,12 +267,12 @@ func InitConfig() {
 
 	viper.SetConfigName("config")
 	viper.AddConfigPath("/etc/goair")
-	viper.AddConfigPath("$HOME/.goair/")
+	viper.AddConfigPath("$HOME/.goair")
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		fmt.Println("No configuration file loaded - using defaults")
-	}
+	viper.ReadInConfig()
+	// if err != nil {
+	// 	fmt.Println("No configuration file loaded - using defaults")
+	// }
 
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("VCLOUDAIR")
