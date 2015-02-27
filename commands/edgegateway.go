@@ -41,6 +41,7 @@ func init() {
 	edgegatewaynewfirewallCmd.Flags().StringVar(&destinationport, "destinationport", "", "VCLOUDAIR_DESTINATIONPORT")
 	edgegatewaynewfirewallCmd.Flags().StringVar(&description, "description", "", "VCLOUDAIR_DESCRIPTION")
 	edgegatewaynewfirewallCmd.Flags().StringVar(&protocol, "protocol", "", "VCLOUDAIR_PROTOCOL")
+	edgegatewayremovefirewallCmd.Flags().StringVar(&ruleid, "ruleid", "", "VCLOUDAIR_RULEID")
 
 	edgegatewayCmdV = edgegatewayCmd
 
@@ -55,6 +56,7 @@ func addCommandsEdgeGateway() {
 	edgegatewayCmd.AddCommand(edgegatewaynewnatCmd)
 	edgegatewayCmd.AddCommand(edgegatewayremovenatCmd)
 	edgegatewayCmd.AddCommand(edgegatewaynewfirewallCmd)
+	edgegatewayCmd.AddCommand(edgegatewayremovefirewallCmd)
 }
 
 var edgegatewayCmd = &cobra.Command{
@@ -92,6 +94,13 @@ var edgegatewaynewfirewallCmd = &cobra.Command{
 	Short: "Create firewall rule on edgegateway",
 	Long:  `Create firewall rule on edgegateway`,
 	Run:   cmdNewFirewallEdgeGateway,
+}
+
+var edgegatewayremovefirewallCmd = &cobra.Command{
+	Use:   "remove-firewallrule",
+	Short: "Remove firewall rule on edgegateway",
+	Long:  `Remove firewall rule on edgegateway`,
+	Run:   cmdRemoveFirewallEdgeGateway,
 }
 
 func cmdGetEdgeGateway(cmd *cobra.Command, args []string) {
@@ -473,4 +482,78 @@ func cmdNewFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 		log.Fatalf("error waiting for task to complete: %v", err)
 	}
 
+}
+
+func cmdRemoveFirewallEdgeGateway(cmd *cobra.Command, args []string) {
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
+		"planid":             {planID, true, false, ""},
+		"region":             {region, true, false, "planid"},
+		"vdchref":            {vdchref, true, false, ""},
+		"ruleid":             {ruleid, true, false, ""},
+		"runasync":           {runasync, false, false, ""},
+		"instanceAttributes": {instanceAttributes, true, false, ""},
+	})
+
+	if len(args) > 0 && args[0] != "1to1" {
+		log.Fatalf("Missing type of NAT, currently 1to1 is supported.")
+	}
+
+	client, err := authenticate(false)
+	if err != nil {
+		log.Fatalf("failed authenticating: %s", err)
+	}
+
+	err = authenticatecompute(client, false, "")
+	if err != nil {
+		log.Fatalf("Error authenticating compute: %s", err)
+	}
+
+	vdcuri, err := url.Parse(viper.GetString("vdchref"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client.VCDVDCHREF = *vdcuri
+
+	vdc := govcloudair.NewVdc(client)
+	vdc.Vdc = &types.Vdc{HREF: client.VCDVDCHREF.String()}
+	err = vdc.Refresh()
+	if err != nil {
+		log.Fatalf("err refreshing vdc: %v", err)
+	}
+
+	edgeGateway, err := vdc.FindEdgeGateway("")
+	if err != nil {
+		log.Fatalf("err getting edge gateway: %v", err)
+	}
+
+	newedgeconfig := edgeGateway.EdgeGateway.Configuration.EdgeGatewayServiceConfiguration
+
+	var newFirewallRules []*types.FirewallRule
+	for _, firewallRule := range newedgeconfig.FirewallService.FirewallRule {
+		if firewallRule.ID != ruleid {
+			newFirewallRules = append(newFirewallRules, firewallRule)
+		}
+	}
+
+	newedgeconfig.FirewallService.FirewallRule = newFirewallRules
+
+	task, err := edgeGateway.UpdateFirewall(newedgeconfig)
+	if err != nil {
+		log.Fatalf("error updating firewall: %v", err)
+	}
+
+	if viper.GetString("runasync") == "true" {
+		yamlOutput, err := yaml.Marshal(&task)
+		if err != nil {
+			log.Fatalf("error marshaling: %s", err)
+		}
+		fmt.Println(string(yamlOutput))
+		return
+	}
+
+	err = task.WaitTaskCompletion()
+	if err != nil {
+		log.Fatalf("error waiting for task to complete: %v", err)
+	}
 }

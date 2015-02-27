@@ -108,7 +108,8 @@ This will be filled out as there are more things added.
 
       goair edgegateway new-firewallrule --destinationport="22,24-30" --sourceport="Any" --destinationip="107.189.92.154" --sourceip="Any" --protocol=tcp --description="outside_in"
       goair edgegateway new-firewallrule --destinationport="Any" --sourceport="Any" --destinationip="Any" --sourceip="192.168.109.0/24" --protocol=tcp --description="inside_out"
-
+      goair edgegateway remove-firewallrule --ruleid=1
+      
 
 ##Examples
 Here is the help screen that is available at every level using ```help``` or ```--help```.

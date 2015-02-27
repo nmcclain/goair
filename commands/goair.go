@@ -41,6 +41,7 @@ var (
 	destinationip      string
 	destinationport    string
 	protocol           string
+	ruleid             string
 )
 
 //FlagValue struct
