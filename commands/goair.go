@@ -33,6 +33,13 @@ var (
 	vdcnetworkname     string
 	vmname             string
 	runasync           string
+	internalip         string
+	externalip         string
+	description        string
+	sourceip           string
+	sourceport         string
+	destinationip      string
+	destinationport    string
 )
 
 //FlagValue struct
@@ -65,6 +72,7 @@ func AddCommands() {
 	GoairCmd.AddCommand(vappCmd)
 	GoairCmd.AddCommand(catalogCmd)
 	GoairCmd.AddCommand(orgvdcnetworkCmd)
+	GoairCmd.AddCommand(edgegatewayCmd)
 }
 
 var goairCmdV *cobra.Command
@@ -221,8 +229,9 @@ func initConfig(cmd *cobra.Command, suffix string, checkValues bool, flags map[s
 				}
 			}
 		}
-	Loop1:
+
 		for _, fieldMissingRemove := range fieldsMissingRemove {
+		Loop1:
 			for i, fieldMissing := range fieldsMissing {
 				if fieldMissing == fieldMissingRemove {
 					fieldsMissing = append(fieldsMissing[:i], fieldsMissing[i+1:]...)

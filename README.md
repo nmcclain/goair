@@ -97,7 +97,14 @@ This will be filled out as there are more things added.
       goair catalog get vapptemplate --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit"
       goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vmname="Test2" --vdcnetworkname=default-routed-network
       goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vmname="Test2" --vdcnetworkname=default-routed-network --runasync=true
+      goair edgegateway get
 
+      goair edgegateway new-natrule 1to1 --externalip=107.189.92.154 --internalip=192.168.109.2 --description=newrule
+      goair edgegateway remove-natrule 1to1 --externalip=107.189.92.154 --internalip=192.168.109.2
+      goair edgegateway get natrule
+      goair edgegateway get gatewayinteface
+      goair edgegateway get iprange
+      goair edgegateway get publicip
 
 
 ##Examples

@@ -216,10 +216,6 @@ func cmdDeployCatalog(cmd *cobra.Command, args []string) {
 	vdc.Vdc = &types.Vdc{HREF: client.VCDVDCHREF.String()}
 	vdc.Refresh()
 
-	if _, err := vdc.FindVAppByName(vappname); err == nil {
-		log.Fatalf("VApp %v already exists", viper.GetString("vappname"))
-	}
-
 	vdcNetwork, err := vdc.FindVDCNetwork(viper.GetString("vdcnetworkname"))
 	if err != nil {
 		log.Fatalf("error finding Vdc network: %v", err)
