@@ -137,7 +137,7 @@ func cmdGetVApp(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if len(args) == 0 && vapp.VApp != nil && viper.GetString("vappname") == "" && viper.GetString("vappid") == "" {
+	if len(args) == 0 && vapp.VApp != nil && (viper.GetString("vappname") != "" || viper.GetString("vappid") != "") {
 		yamlOutput, err := yaml.Marshal(&vapp)
 		if err != nil {
 			log.Fatalf("error marshaling: %s", err)
