@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/emccode/govcloudair"
 	"github.com/spf13/cobra"
@@ -37,6 +40,7 @@ func init() {
 	edgegatewaynewfirewallCmd.Flags().StringVar(&destinationip, "destinationip", "", "VCLOUDAIR_DESTINATIONIP")
 	edgegatewaynewfirewallCmd.Flags().StringVar(&destinationport, "destinationport", "", "VCLOUDAIR_DESTINATIONPORT")
 	edgegatewaynewfirewallCmd.Flags().StringVar(&description, "description", "", "VCLOUDAIR_DESCRIPTION")
+	edgegatewaynewfirewallCmd.Flags().StringVar(&protocol, "protocol", "", "VCLOUDAIR_PROTOCOL")
 
 	edgegatewayCmdV = edgegatewayCmd
 
@@ -342,10 +346,11 @@ func cmdNewFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 		"region":             {region, true, false, "planid"},
 		"vdchref":            {vdchref, true, false, ""},
 		"sourceip":           {sourceip, true, false, ""},
-		"sourceport":         {sourceport, true, false, ""},
+		"sourceport":         {sourceport, false, false, ""},
 		"destinationip":      {destinationip, true, false, ""},
-		"destinationport":    {destinationport, true, false, ""},
+		"destinationport":    {destinationport, false, false, ""},
 		"description":        {description, true, false, ""},
+		"protocol":           {protocol, false, false, ""},
 		"runasync":           {runasync, false, false, ""},
 		"instanceAttributes": {instanceAttributes, true, false, ""},
 	})
@@ -384,23 +389,70 @@ func cmdNewFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 	}
 
 	//sourceip sourceport destinationip destinationport
-	fwin := &types.FirewallRule{
-		Description: description,
-		IsEnabled:   true,
-		Policy:      "allow",
-		Protocols: &types.FirewallRuleProtocols{
-			Any: true,
-		},
-		DestinationPortRange: "Any",
-		DestinationIP:        destinationip,
-		SourcePortRange:      "Any",
-		SourceIP:             "Any",
-		EnableLogging:        false,
+	//tcp:1000,1001,1002-1004
+	//DestinationPortRange "Any"
+	//Protocols.Tcp = true
+
+	var icmp bool
+	var tcp bool
+	var udp bool
+	var any bool
+	switch protocol {
+	case "icmp":
+		icmp = true
+	case "tcp":
+		tcp = true
+	case "udp":
+		udp = true
+	case "any":
+		any = true
+	default:
+		log.Fatalf("error: protocol is invalid, must be icmp|tcp|udp|any")
 	}
 
 	newedgeconfig := edgeGateway.EdgeGateway.Configuration.EdgeGatewayServiceConfiguration
 
-	newedgeconfig.FirewallService.FirewallRule = append(newedgeconfig.FirewallService.FirewallRule, fwin)
+	var destinationPortRange string
+	var destinationPort int
+	destinationPorts := strings.Split(destinationport, ",")
+	for _, arg := range destinationPorts {
+		matched, err := regexp.MatchString("-", arg)
+		if err != nil {
+			log.Fatalf("err matching: %v", err)
+		}
+		if matched || arg == "Any" {
+			destinationPortRange = arg
+			destinationPort = -1
+		} else {
+			destinationPortRange = ""
+			spi, err := strconv.Atoi(arg)
+			if err != nil {
+				log.Fatalf("problem converting port to integer: %v", err)
+			}
+			destinationPort = spi
+		}
+
+		fwin := &types.FirewallRule{
+			Description: description,
+			IsEnabled:   true,
+			Policy:      "allow",
+			Protocols: &types.FirewallRuleProtocols{
+				Tcp:  tcp,
+				Udp:  udp,
+				Icmp: icmp,
+				Any:  any,
+			},
+			DestinationPortRange: destinationPortRange,
+			Port:                 destinationPort,
+			DestinationIP:        destinationip,
+			SourcePortRange:      sourceport,
+			SourceIP:             sourceip,
+			EnableLogging:        false,
+		}
+		fmt.Printf("%+v", fwin)
+		newedgeconfig.FirewallService.FirewallRule = append(newedgeconfig.FirewallService.FirewallRule, fwin)
+
+	}
 
 	task, err := edgeGateway.UpdateFirewall(newedgeconfig)
 	if err != nil {

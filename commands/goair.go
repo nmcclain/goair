@@ -40,6 +40,7 @@ var (
 	sourceport         string
 	destinationip      string
 	destinationport    string
+	protocol           string
 )
 
 //FlagValue struct
