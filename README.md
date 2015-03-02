@@ -12,8 +12,8 @@ See Youtube videos here.
   - [Environment Variables](#env)
 - [Running - Basic](#running-basic)
 - [Running - Docker Mini (scratch)](#advanced-docker)
-  - [Basic Docker](basic-docker)
-  - [Advanced Docker](advanced-docker)
+  - [Basic Docker](#basic-docker)
+  - [Advanced Docker](#advanced-docker)
 - [CLI Command Examples](#cliexamples)
   - [ondemand](#ondemand)
   - [orgvdcnetwork](#orgvdcnetwork)
@@ -21,8 +21,9 @@ See Youtube videos here.
   - [catalog](#catalog)
   - [edgegateway](#edgegateway)
   - [vapp](#vapp)
-- [Example](examples)
+- [Examples](#examples)
 - [About the CLI](#aboutthecli)
+- [Future](#future)
 - [Contributions](#contributions)
 - [Licensing](#licensing)
 - [Support](#support)
@@ -54,7 +55,7 @@ Flags are simple the ```--``` followed by a paramter.  Certain flags like userna
       --password='pasword'
       --endpoint="https://us-california-1-3.vchs.vmware.com/api"
 
-####<a id="configfiles">Configurations files</a> (config.yaml in ~HOME/.goair/ or /etc/goair)
+###<a id="configfiles">Configurations files</a> (config.yaml in ~HOME/.goair/ or /etc/goair)
 The home directory is translated depending on the operating system.  For OS X/Linux the ```HOME``` environment variable is used.  For Windows the ```HOMEDRIVE/HOMEPATH``` combination of environment variables are used unless it is blank, otherwise ```USERPROFILE``` is used.  The next option is the ```/etc/goair``` directory which works across operating systems.
 
       insecure: 'false'
@@ -63,7 +64,7 @@ The home directory is translated depending on the operating system.  For OS X/Li
       endpoint: https://us-california-1-3.vchs.vmware.com/api
 
 
-###<a id="env">Environment Variables (VCLOUDAIR_)</a>
+###<a id="env">Environment Variables</a>
 Set the environment variables to ```true``` on the boolean based variables.
 
 
@@ -89,14 +90,15 @@ You can also leverage the Docker container to run the CLI commands directly or i
 ```docker run -ti -e VCLOUDAIR_USERNAME='username@domain' -e VCLOUDAIR_PASSWORD='password' emccode/goair --help```
 
 
-## <a id="running-docker">Running - Docker</a>
-A great option for running *goair* is through a Docker container.  There are a couple of choices for this however.  If you would like to have an interactive session with goair inside of a Docker container you can use the standard ```emccode/goair``` Docker image.  This would be executed as ```docker run -ti emccode/goair```.  From there all of the methods, ie. flags, environment variables, and configuration files are available.
+## <a id="basic-docker">Running - Docker</a>
+A great option for running *goair* is through a Docker container.  There are a couple of choices for this.  If you would like to have an interactive session with goair inside of a Docker container you can use the standard ```emccode/goair``` Docker image.  This would be executed as ```docker run -ti emccode/goair```.  From there all of the methods, ie. flags, environment variables, and configuration files are available.
 
 Docker containers can also take advantage of a couple of things.  You can specify ahead of time the environment variables to be used via ```-e VCLOUDAIR_USERNAME=test@test.com``` flags or even in a custom Docker image with ```ENV VCLOUDAIR_USERNAME xxyz```.  This makes the interactive usage of the CLI easier.  In addition you can also map a local directory with the ```config.yaml``` file with a ```-v /Users/username/.goair/:/etc/goair``` flag (or respective to your system).
 
 ## <a id="advanced-docker">Running - Docker Mini (Scratch)</a>
 The ```goair-mini``` image is a minimal Docker container based on the scratch image.  This means the only space consumed by the container is the *goair* binary file.  The upside to this is the minimal method for distribution.  The downside is that it means there is no interactive usage inside of a container since there is no ```bash```.  You can leverage this style, but you must do as specified prior to get proper configuration to goair as well as mount a temp directory so the go binary files can persist across containers.  You can map these to whichever location you want with ```-v /tmp/:/tmp```.
 
+This method is interactive as well, but from outside the container.  This means you continually execute the ```docker run``` command.  Specifying a ```--rm``` as a flag will ensure the container gets deleted when after command completion.
 
 ##<a id="cliexamples">CLI Command Examples</a>
 This will be filled out as there are more things added.
@@ -221,6 +223,10 @@ The *goair* application functions identically across any of these executables.  
 In order to make the CLI as easy to use as possible you can expect certain things (auth tokens) to be cached in local temp locations.  This makes it possible to run commands like ```goair use compute --region=there --vdcname=vdc1``` and have all further commands respect this context.  This functionality is driven by the [Clue package](https://github.com/emccode/clue).
 
 Finally, the since *Goair* is a compiled binary and possible even static (zero dependencies), it is extremely efficient to use interactively and simple to distribute.
+
+##<a id="future">Future</a>
+- Upload to Catalog
+- Guest customization scripts
 
 ##<a id="contributions">Contributions</a>
 The package leverages a handful of open source technologies and projects.
