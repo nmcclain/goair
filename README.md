@@ -1,61 +1,119 @@
 #GoAir
-**GoAir** is a multi-platform (Linux/Linux Static/OS X/Windows/FreeBSD) CLI tool written as a Golang package that implements the [VMware vCloud Air bindings](https://github.com/vmware/govcloudair) package.
+**GoAir** is a multi-platform (OS X/Docker/Linux/Windows/FreeBSD) CLI tool.  It's current focus is to simplify the process of deploying machines and configuring network services for on-demand vCloud Air compute services.
 
-It is in early stages right now, so please follow the repo if interested!  The focus up to this point has been in implementing the correct CLI and configuration framework along with basic vCloud Air On-Demand authentication.
+See Youtube videos here.
 
-The package leverages Steve Francia's [Cobra](https://github.com/spf13/cobra) as a CLI framework and [Viper](https://github.com/spf13/viper) for configuration management.
+- [Contributions](#contributions)
+- [About the CLI](#aboutthecli)
+- [Install and Operate Choices](#installchoices)
+- [Configuration](#configuration)
+  - [Flags with possible runtime persistence](#flagspersistency)
+  - [Configuration files](#configfiles)
+  - [Environment Variables](#env)
+- [Running - Basic](#running-basic)
+- [Running - Docker Mini (scratch)](#advanced-docker)
+  - [Basic Docker](basic-docker)
+  - [Advanced Docker](advanced-docker)
+- [CLI Command Examples](#cliexamples)
+  - [ondemand](#ondemand)
+  - [orgvdcnetwork](#orgvdcnetwork)
+  - [compute](#compute)
+  - [catalog](#catalog)
+  - [edgegateway](#edgegateway)
+  - [vapp](#vapp)
+- [Example](examples)
 
-##Configuration
-The project currently has the four areas of configuration possible, listed in order of priority.  
 
-###Flags with possible runtime persistence
+
+
+
+##<a id="contributions">Contributions</a>
+The package leverages a handful of open source technologies and projects.
+
+- [Go Programming Language](http://golang.org/pkg/)
+- [VMware vCloud Air Go API bindings](https://github.com/vmware/govcloudair)
+- [Cobra](https://github.com/spf13/cobra) CLI framework
+- [Viper](https://github.com/spf13/viper) for configuration management.
+- [Golang-Crosscompile](https://github.com/davecheney/golang-crosscompile.git)
+- [Gotablethis](https://github.com/emccode/gotablethis)
+- [Clue](https://github.com/emccode/clue)
+
+
+## <a id="aboutthecli">About the CLI</a>
+Since we are using Go, the first major benefit is that we are able to cross-compile it to a bunhc of different platforms and architectures.  The following list covers the binaries that are compiled along with their relative sizes.
+
+      9941784 goair-Darwin-i386*
+     12340576 goair-Darwin-x86_64*
+     12275632 goair-FreeBSD-amd64*
+      9860304 goair-FreeBSD-i386*
+      9890552 goair-Linux-armv6l*
+      9890552 goair-Linux-armv7l*
+      9917272 goair-Linux-i386*
+      9917272 goair-Linux-i686*
+      8762528 goair-Linux-static*
+     12281200 goair-Linux-x86_64*
+      9997312 goair.exe*
+
+The *goair* application functions identically across any of these providers.  There are a couple of notable differences.
+
+- SSL Certificates - platforms with ca-certificates in non-default locations or not installed must use the environment variable ```VCLOUDAIR_USECERTS=true```.  This will foce the usage of default ca-certificates.
+- Configuration via environment variables or location of configuration files may differ across platforms.  See below.
+
+In order to make the CLI as easy to use as possible you can expect certain things (auth tokens) to be cached in local temp locations.  This makes it possible to run commands like ```goair use compute --region=there --vdcname=vdc1``` and have all further commands respect this context.  This functionality is driven by the [Clue package](https://github.com/emccode/clue).
+
+Finally, the since *Goair* is a compiled binary and possible even static (zero dependencies), it is extremely efficient to use interactively and simple to distribute.
+
+## <a id="installchoices">Install and Run Choices</a>
+There are plenty of options to install and run *Goair*.  Choose from any one of the following options.  
+- [Binaries](cdn.emccode.com/goair/goair-150301-all.zi)
+- Ubuntu Goair Docker container (206MB)
+- Mini (scratch) Goair Docker container (9MB)
+- Clone the github repo and build yourself
+  - git clone https://github.com/emccode/goair
+    - go build -i -a (to be goair binary for local platform)
+  - OR
+    - go get github.com/emccode/goair
+    - docker run --rm -it -v $GOPATH:/go -w /go/src/github.com/emccode/goair golang:1.4.2-cross make release
+    - binaries available in the release/ dir
+
+
+## <a id="configuration">Configuration</a>
+The project currently has the four areas of configuration possible, listed in order of priority.  The combination of flags (parameters), environment variables, and configuration files allows for about any use case possible.
+
+###<a id="flagspersistency">Flags with possible runtime persistence</a>
+Flags are simple the ```--``` followed by a paramter.  Certain flags like username and password may only be needed during an initial llogin since there is an element of persistence through Go binary files that save authentication tokens acorss CLI executions.
 
       --username='username@domain'
       --password='pasword'
       --endpoint="https://us-california-1-3.vchs.vmware.com/api"
 
-###Flags saved by ```use``` statement
-A ```use``` command can be used in certain scenarios where the specified flags will be saved for usage later.
-      goair compute use --region=us-virginia-1-4.vchs.vmware.com
-      goair compute use --region=""
+####<a id="configfiles">Configurations files</a> (config.yaml in ~HOME/.goair/ or /etc/goair)
+The home directory is translated depending on the operating system.  For OS X/Linux the ```HOME``` environment variable is used.  For Windows the ```HOMEDRIVE/HOMEPATH``` combination of environment variables are used unless it is blank, otherwise ```USERPROFILE``` is used.  The next option is the ```/etc/goair``` directory which works across operating systems.
 
-####Configurations files (config.yaml in ~HOME/.goair/ or /etc/goair)
-
+      insecure: 'false'
       username: username@domain
       password: password
       endpoint: https://us-california-1-3.vchs.vmware.com/api
 
-###Environment Variables (VCLOUDAIR_)
 
-      VCLOUDAIR_USERNAME='username@domain' \
-      VCLOUDAIR_PASSWORD='password' \
-      VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/api" \
-      VCLOUDAIR_SHOW_RESPONSE='true' \
-      VCLOUDAIR_SHOW_BODY='true' \
-      VCLOUDAIR_INSECURE='true' \
-      VCLOUDAIR_SHOW_FLAG='true' \
-      VCLOUDAIR_SHOW_GOB='true' \
-      ./goair
+###<a id="env">Environment Variables (VCLOUDAIR_)</a>
+Set the environment variables to ```true``` on the boolean based variables.
 
 
-##Compiling
-    git clone https://github.com/emccode/goair
-    go build -i -a
-    go install github.com/emccode/goai
-
-Additionally if you want to cross-compile this you can use the following command to create a release directory under the goair folder with the release binaries.
-
-This will create binaries for OS X/FreeBSD/Linux/Linux Static/Windows.
-
-```docker run --rm -it -v $GOPATH:/go -w /go/src/github.com/emccode/goair golang:1.3-cross make release```
+      VCLOUDAIR_USERNAME: Your vCloud Air username
+      VCLOUDAIR_PASSWORD: Your vCloud Air password
+      VCLOUDAIR_ENDPOINT: Your preferred vCloud Air intiial endpoint, ie. https://us-california-1-3.vchs.vmware.com/api
+      VCLOUDAIR_SHOW_RESPONSE: Whether to show the response or not from the API call
+      VCLOUDAIR_SHOW_BODY: Whether to show the HTTP body.  Will intercept POST bodies.
+      VCLOUDAIR_INSECURE: Whether to disregard SSL errors
+      VCLOUDAIR_SHOW_FLAG: Display details regarding the configuration via Viper for flags, env varibles, configuration files, and gob.
+      VCLOUDAIR_SHOW_GOB: Show decoding and encoding details for Go binary files
+      CLUE_DEBUG: Show file locations during gob operations.
 
 
 
-##Docker Build
-Run the ```Compiling``` steps first.  From there you can issue a ```docker build -t emccode/goair .``` command to build the new Docker container.  This container will be using the ```scratch``` image which will have a size of around 10MB.
 
-
-##Running
+## <a id="running-basic">Running - Basic</id>
 The CLI can be ran as follows.  Using the proper binary from the ```release``` directory the following command will work.
 
 ```goair --help```
@@ -64,8 +122,22 @@ You can also leverage the Docker container to run the CLI commands directly or i
 ```docker run -ti -e VCLOUDAIR_USERNAME='username@domain' -e VCLOUDAIR_PASSWORD='password' emccode/goair --help```
 
 
-##CLI Hierarchy
+## <a id="running-docker">Running - Docker</a>
+A great option for running *goair* is through a Docker container.  There are a couple of choices for this however.  If you would like to have an interactive session with goair inside of a Docker container you can use the standard ```emccode/goair``` Docker image.  This would be executed as ```docker run -ti emccode/goair```.  From there all of the methods, ie. flags, environment variables, and configuration files are available.
+
+Docker containers can also take advantage of a couple of things.  You can specify ahead of time the environment variables to be used via ```-e VCLOUDAIR_USERNAME=test@test.com``` flags or even in a custom Docker image with ```ENV VCLOUDAIR_USERNAME xxyz```.  This makes the interactive usage of the CLI easier.  In addition you can also map a local directory with the ```config.yaml``` file with a ```-v /Users/username/.goair/:/etc/goair``` flag (or respecitve to your system).
+
+## <a id="advanced-docker">Running - Docker Mini (Scratch)</a>
+The ```goair-mini``` image is a minimal Docker container based on the scratch image.  This means the only space consumed by the container is the *goair* binary file.  The upside to this is the minimal method for distribution.  The downside is that it means there is no interactive usage inside of a container since there is no ```bash```.  You can leverage this style, but you must do as specified prior to get proper configuration to goair as well as mount a temp directory so the go binary files can persist across containers.  You can map these to whichever location you want with ```-v /tmp/:/tmp```.
+
+
+
+
+
+##<a id="cliexamples">CLI Command Examples</a>
 This will be filled out as there are more things added.
+
+### <a id="ondemand">ondemand</a>
 
       goair ondemand login
       goair ondemand plans get
@@ -73,18 +145,27 @@ This will be filled out as there are more things added.
       goair ondemand instances get
       goair ondemand users get
       goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
+
+### <a id="orgvdcnetwork">orgvdcnetwork</a>
+
       goair orgvdcnetwork get
       goair orgvdcnetwork get --networkname=default-routed-network
+
+### <a id="compute">compute</a>
       goair compute get
       goair compute get --region=us-california-1-3.vchs.vmware.com
       goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
       goair compute use --region=us-california-1-3.vchs.vmware.com --name=VDC4
+
+### <a id="catalog">catalog</a>
       goair catalog get
       goair catalog get --catalogname="Public Catalog"
       goair catalog get --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit"
       goair catalog get vapptemplate --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit"
       goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vmname="Test2" --vdcnetworkname=default-routed-network
       goair catalog deploy --catalogname="Public Catalog" --catalogitemname="CentOS64-64Bit" --vmname="Test2" --vdcnetworkname=default-routed-network --runasync=true
+
+### <a id="edgegateway">edgegateway</a>
       goair edgegateway get
 
       goair edgegateway new-natrule 1to1 --externalip=107.189.92.154 --internalip=192.168.109.2 --description=newrule
@@ -94,9 +175,13 @@ This will be filled out as there are more things added.
       goair edgegateway get iprange
       goair edgegateway get publicip
       goair edgegateway new-firewallrule --destinationport="22" --sourceport="Any" --destinationip="107.189.92.154" --sourceip="Any" --protocol=tcp --description="outside_in"
-      goair edgegateway new-firewallrule --destinationport="Any" --sourceport="Any" --destinationip="107.189.92.154" --sourceip="Any" --protocol=icmp --description="outside_in_icmp"
+
       goair edgegateway new-firewallrule --destinationport="Any" --sourceport="Any" --destinationip="Any" --sourceip="192.168.109.0/24" --protocol=tcp --description="inside_out"
+      goair edgegateway new-firewallrule --destinationport="Any" --sourceport="Any" --destinationip="107.189.92.154" --sourceip="Any" --protocol=icmp --description="outside_in_icmp"
       goair edgegateway remove-firewallrule --ruleid=1
+
+### <a id="vapp">vapp</a>
+
       goair vapp get
       goair vapp get --vappname=test8
       goair vapp get-status --vappname=test8
@@ -115,9 +200,8 @@ This will be filled out as there are more things added.
       goair vapp get guestcustomization --vappname=Test6-VApp
 
 
-##Examples
+##<a id="examples">Examples</a>
 Here is the help screen that is available at every level using ```help``` or ```--help```.
-    Usage of goair:
 
     Usage:
       goair [flags]
@@ -125,26 +209,28 @@ Here is the help screen that is available at every level using ```help``` or ```
 
     Available Commands:
       ondemand                  ondemand
+      compute                   compute
+      vapp                      vapp
+      catalog                   catalog
+      orgvdcnetwork             orgvdcnetwork
+      edgegateway               edgegateway
       help [command]            Help about any command
 
      Available Flags:
           --Config="": config file (default is $HOME/goair/config.yaml)
-      -h, --help=false: help for goair
-
-    Use "goair help [command]" for more information about that command.
+          --help=false: help for goair
 
 
-The following is an example of the current operation and output in a nicely formatted table.
+##<a id="output">Output from commands</a>
+The intended output from the commands is to be a format that is both human readable and interpretable in a structured programmatic way.  For this, YAML has been chosen for most command outputs.  
 
-    dicey1:goair clintonkitson$ bin/goair.darwin ondemand plans get
-        +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
-        |              REGION               |                  ID                  |              NAME              |       SERVICENAME       |
-        +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
-        | us-california-1-3.vchs.vmware.com | 41400e72-4445-49ef-90a4-98da4ccfb16c | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
-        | us-virginia-1-4.vchs.vmware.com   | feda2913-32cb-4efd-a4e5-c5953733df33 | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
-        | uk-slough-1-6.vchs.vmware.com     | 62155211-e5fc-448d-a46a-770c57c5dd31 | Virtual Private Cloud OnDemand | com.vmware.vchs.compute |
-        | PMP                               | e79a3b5g-92bc-4b33-aa6c-9dbd1e9d9bfe | My Subscriptions               | com.vmware.vchs.vcim    |
-        +-----------------------------------+--------------------------------------+--------------------------------+-------------------------+
+
+    ./goair compute use --region=us-california-1-3.vchs.vmware.com --vdcname=VDC4
+    href: https://us-california-1-3.vchs.vmware.com/api/compute/api/vdc/cbecb4b5-4267-4018-9458-a05d56936eff
+    id: ""
+    type: application/vnd.vmware.vcloud.vdc+xml
+    name: VDC4
+    rel: down
 
 
 Licensing

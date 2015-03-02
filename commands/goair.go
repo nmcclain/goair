@@ -64,6 +64,14 @@ var GoairCmd = &cobra.Command{
 	},
 }
 
+//GoairCmd
+var versionCmd = &cobra.Command{
+	Use: "version",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("\nGoair Version: %v\n", "0.1.150301")
+	},
+}
+
 //Exec function
 func Exec() {
 	AddCommands()
@@ -78,6 +86,7 @@ func AddCommands() {
 	GoairCmd.AddCommand(catalogCmd)
 	GoairCmd.AddCommand(orgvdcnetworkCmd)
 	GoairCmd.AddCommand(edgegatewayCmd)
+	GoairCmd.AddCommand(versionCmd)
 }
 
 var goairCmdV *cobra.Command
