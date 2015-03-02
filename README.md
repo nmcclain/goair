@@ -33,7 +33,7 @@ See Youtube videos here.
 
 ## <a id="runtimechoices">Runtime Choices</a>
 There are plenty of options to install and run *Goair*.  Choose from any one of the following options.  
-- Release Binaries - https://github.com/emccode/goair/releases/tag/v0.1.510301
+- Release Binaries - https://github.com/emccode/goair/releases/tag/v0.1.150301
 - Ubuntu Goair Docker container (206MB)
 - Mini (scratch) Goair Docker container (9MB)
 - Clone the github repo and build yourself
