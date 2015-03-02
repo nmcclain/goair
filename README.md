@@ -3,9 +3,9 @@
 
 See Youtube videos here.
 
-- [Contributions](#contributions)
-- [About the CLI](#aboutthecli)
-- [Install and Operate Choices](#installchoices)
+
+
+- [Runtime Choices](#runtimechoices)
 - [Configuration](#configuration)
   - [Flags with possible runtime persistence](#flagspersistency)
   - [Configuration files](#configfiles)
@@ -22,48 +22,15 @@ See Youtube videos here.
   - [edgegateway](#edgegateway)
   - [vapp](#vapp)
 - [Example](examples)
+- [About the CLI](#aboutthecli)
+- [Contributions](#contributions)
+- [Licensing](#licensing)
+- [Support](#support)
 
 
 
 
-
-##<a id="contributions">Contributions</a>
-The package leverages a handful of open source technologies and projects.
-
-- [Go Programming Language](http://golang.org/pkg/)
-- [VMware vCloud Air Go API bindings](https://github.com/vmware/govcloudair)
-- [Cobra](https://github.com/spf13/cobra) CLI framework
-- [Viper](https://github.com/spf13/viper) for configuration management.
-- [Golang-Crosscompile](https://github.com/davecheney/golang-crosscompile.git)
-- [Gotablethis](https://github.com/emccode/gotablethis)
-- [Clue](https://github.com/emccode/clue)
-
-
-## <a id="aboutthecli">About the CLI</a>
-Since we are using Go, the first major benefit is that we are able to cross-compile it to a bunhc of different platforms and architectures.  The following list covers the binaries that are compiled along with their relative sizes.
-
-      9941784 goair-Darwin-i386*
-     12340576 goair-Darwin-x86_64*
-     12275632 goair-FreeBSD-amd64*
-      9860304 goair-FreeBSD-i386*
-      9890552 goair-Linux-armv6l*
-      9890552 goair-Linux-armv7l*
-      9917272 goair-Linux-i386*
-      9917272 goair-Linux-i686*
-      8762528 goair-Linux-static*
-     12281200 goair-Linux-x86_64*
-      9997312 goair.exe*
-
-The *goair* application functions identically across any of these providers.  There are a couple of notable differences.
-
-- SSL Certificates - platforms with ca-certificates in non-default locations or not installed must use the environment variable ```VCLOUDAIR_USECERTS=true```.  This will foce the usage of default ca-certificates.
-- Configuration via environment variables or location of configuration files may differ across platforms.  See below.
-
-In order to make the CLI as easy to use as possible you can expect certain things (auth tokens) to be cached in local temp locations.  This makes it possible to run commands like ```goair use compute --region=there --vdcname=vdc1``` and have all further commands respect this context.  This functionality is driven by the [Clue package](https://github.com/emccode/clue).
-
-Finally, the since *Goair* is a compiled binary and possible even static (zero dependencies), it is extremely efficient to use interactively and simple to distribute.
-
-## <a id="installchoices">Install and Run Choices</a>
+## <a id="runtimechoices">Runtime Choices</a>
 There are plenty of options to install and run *Goair*.  Choose from any one of the following options.  
 - [Binaries](cdn.emccode.com/goair/goair-150301-all.zi)
 - Ubuntu Goair Docker container (206MB)
@@ -125,13 +92,10 @@ You can also leverage the Docker container to run the CLI commands directly or i
 ## <a id="running-docker">Running - Docker</a>
 A great option for running *goair* is through a Docker container.  There are a couple of choices for this however.  If you would like to have an interactive session with goair inside of a Docker container you can use the standard ```emccode/goair``` Docker image.  This would be executed as ```docker run -ti emccode/goair```.  From there all of the methods, ie. flags, environment variables, and configuration files are available.
 
-Docker containers can also take advantage of a couple of things.  You can specify ahead of time the environment variables to be used via ```-e VCLOUDAIR_USERNAME=test@test.com``` flags or even in a custom Docker image with ```ENV VCLOUDAIR_USERNAME xxyz```.  This makes the interactive usage of the CLI easier.  In addition you can also map a local directory with the ```config.yaml``` file with a ```-v /Users/username/.goair/:/etc/goair``` flag (or respecitve to your system).
+Docker containers can also take advantage of a couple of things.  You can specify ahead of time the environment variables to be used via ```-e VCLOUDAIR_USERNAME=test@test.com``` flags or even in a custom Docker image with ```ENV VCLOUDAIR_USERNAME xxyz```.  This makes the interactive usage of the CLI easier.  In addition you can also map a local directory with the ```config.yaml``` file with a ```-v /Users/username/.goair/:/etc/goair``` flag (or respective to your system).
 
 ## <a id="advanced-docker">Running - Docker Mini (Scratch)</a>
 The ```goair-mini``` image is a minimal Docker container based on the scratch image.  This means the only space consumed by the container is the *goair* binary file.  The upside to this is the minimal method for distribution.  The downside is that it means there is no interactive usage inside of a container since there is no ```bash```.  You can leverage this style, but you must do as specified prior to get proper configuration to goair as well as mount a temp directory so the go binary files can persist across containers.  You can map these to whichever location you want with ```-v /tmp/:/tmp```.
-
-
-
 
 
 ##<a id="cliexamples">CLI Command Examples</a>
@@ -233,12 +197,49 @@ The intended output from the commands is to be a format that is both human reada
     rel: down
 
 
-Licensing
+
+## <a id="aboutthecli">About the CLI</a>
+Since we are using Go, the first major benefit is that we are able to cross-compile it to a bunhc of different platforms and architectures.  The following list covers the binaries that are compiled along with their relative sizes.
+
+      9941784 goair-Darwin-i386*
+     12340576 goair-Darwin-x86_64*
+     12275632 goair-FreeBSD-amd64*
+      9860304 goair-FreeBSD-i386*
+      9890552 goair-Linux-armv6l*
+      9890552 goair-Linux-armv7l*
+      9917272 goair-Linux-i386*
+      9917272 goair-Linux-i686*
+      8762528 goair-Linux-static*
+     12281200 goair-Linux-x86_64*
+      9997312 goair.exe*
+
+The *goair* application functions identically across any of these executables.  There are a couple of notable differences.
+
+- SSL Certificates - platforms with ca-certificates in non-default locations or not installed must use the environment variable ```VCLOUDAIR_USECERTS=true```.  This will foce the usage of default ca-certificates.
+- Configuration via environment variables or location of configuration files may differ across platforms.  See below.
+
+In order to make the CLI as easy to use as possible you can expect certain things (auth tokens) to be cached in local temp locations.  This makes it possible to run commands like ```goair use compute --region=there --vdcname=vdc1``` and have all further commands respect this context.  This functionality is driven by the [Clue package](https://github.com/emccode/clue).
+
+Finally, the since *Goair* is a compiled binary and possible even static (zero dependencies), it is extremely efficient to use interactively and simple to distribute.
+
+##<a id="contributions">Contributions</a>
+The package leverages a handful of open source technologies and projects.
+
+- [Go Programming Language](http://golang.org/pkg/)
+- [VMware vCloud Air Go API bindings](https://github.com/vmware/govcloudair)
+- [Cobra](https://github.com/spf13/cobra) CLI framework
+- [Viper](https://github.com/spf13/viper) for configuration management.
+- [Golang-Crosscompile](https://github.com/davecheney/golang-crosscompile.git)
+- [Gotablethis](https://github.com/emccode/gotablethis)
+- [Clue](https://github.com/emccode/clue)
+
+
+<a id="licensing">Licensing</a>
 ---------
 Licensed under the Apache License, Version 2.0 (the “License”); you may not use this file except in compliance with the License. You may obtain a copy of the License at <http://www.apache.org/licenses/LICENSE-2.0>
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-Support
+<a id="support">Support</a>
 -------
 Please file bugs and issues at the Github issues page. For more general discussions you can contact the EMC Code team at <a href="https://groups.google.com/forum/#!forum/emccode-users">Google Groups</a> or tagged with **EMC** on <a href="https://stackoverflow.com">Stackoverflow.com</a>. The code and documentation are released with no warranties or SLAs and are intended to be supported through a community driven process.
