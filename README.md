@@ -14,6 +14,7 @@ See Youtube videos here.
 - [Running - Docker Mini (scratch)](#advanced-docker)
   - [Basic Docker](#basic-docker)
   - [Advanced Docker](#advanced-docker)
+- [Deploy VApp Steps](#deployvapp)
 - [CLI Command Examples](#cliexamples)
   - [ondemand](#ondemand)
   - [orgvdcnetwork](#orgvdcnetwork)
@@ -99,6 +100,56 @@ Docker containers can also take advantage of a couple of things.  You can specif
 The ```goair-mini``` image is a minimal Docker container based on the scratch image.  This means the only space consumed by the container is the *goair* binary file.  The upside to this is the minimal method for distribution.  The downside is that it means there is no interactive usage inside of a container since there is no ```bash```.  You can leverage this style, but you must do as specified prior to get proper configuration to goair as well as mount a temp directory so the go binary files can persist across containers.  You can map these to whichever location you want with ```-v /tmp/:/tmp```.
 
 This method is interactive as well, but from outside the container.  This means you continually execute the ```docker run``` command.  Specifying a ```--rm``` as a flag will ensure the container gets deleted when after command completion.
+
+##<a id="deployvapp">Deploy VApp Steps</a>
+The following steps are mostly operational but useful to see a complete flow of getting a VApp deployed from a catalog and operational.
+
+### Login and Choose Compute Resources (VDC)
+
+    goair ondemand login
+    goair ondemand plans get | grep region
+    goair ondemand login use compute --region= --vdcname=VDC4
+
+### Get VDC Network Name
+
+    goair orgvdcnetwork get
+
+### Get and Deploy Catalog Item
+
+    goair catalog get
+    goair catalog get --catalogname="Public Catalog"
+    goair catalog get --catalogname="Public Catalog" --catalogitemname=CENTO
+    goair catalog deploy --catalogname="Public Catalog" --catalogitemname=CENTO --vmname=centos01
+
+### Get IP
+    goair vapp get --vappname=centos01
+
+### Get Available Public IPs and Add NAT
+
+    goair edgegateway get publicip
+    goair edgegateway new-natrule 1to1 --externalip=107.189.92.154 --internalip=192.168.109.2 --description=newrule
+
+### Add Firewall Rules for Inbound and Outbound
+
+    goair edgegateway new-firewallrule --destinationport="22" --sourceport="Any" --destinationip="107.189.92.154" --sourceip="Any" --protocol=tcp --description="outside_in"
+    goair edgegateway new-firewallrule --destinationport="Any" --sourceport="Any" --destinationip="Any" --sourceip="192.168.109.0/24" --protocol=tcp --description="inside_out"
+
+### Update VM Size and Customization Script
+
+    goair vapp update --vappname=test8 --memorysizemb=2048 --cpucount=4
+    goair vapp update guestcustomization script --vappname=test8 < guestCustomizationExample.sh
+
+### Poweron
+
+    goair vapp action poweron --vappname=vappname
+
+### Get Initial Password
+
+    goair vapp get guestcustomization --vappname=vappname
+
+### SSH
+
+
 
 ##<a id="cliexamples">CLI Command Examples</a>
 This will be filled out as there are more things added.
