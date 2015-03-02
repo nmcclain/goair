@@ -2,8 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
+	"os"
 	"strconv"
 
 	"github.com/emccode/govcloudair"
@@ -401,6 +403,27 @@ func cmdUpdateVApp(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatalf("error waiting for task to complete: %v", err)
 		}
+	}
+
+	if len(args) == 2 && args[0] == "guestcustomization" && args[1] == "script" {
+		bytes, _ := ioutil.ReadAll(os.Stdin)
+		customizationScript := string(bytes)
+
+		guestCustomizationSection, err := vapp.GetGuestCustomization()
+		if err != nil {
+			log.Fatalf("error getting guest customization: %s", err)
+		}
+
+		task, err := vapp.RunCustomizationScript(guestCustomizationSection.ComputerName, customizationScript, &guestCustomizationSection)
+		if err != nil {
+			log.Fatalf("err problem updating cpu count: %v", err)
+		}
+
+		err = task.WaitTaskCompletion()
+		if err != nil {
+			log.Fatalf("error waiting for task to complete: %v", err)
+		}
+
 	}
 
 }

@@ -458,7 +458,7 @@ func cmdNewFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 			SourceIP:             sourceip,
 			EnableLogging:        false,
 		}
-		fmt.Printf("%+v", fwin)
+
 		newedgeconfig.FirewallService.FirewallRule = append(newedgeconfig.FirewallService.FirewallRule, fwin)
 
 	}

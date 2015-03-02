@@ -154,6 +154,8 @@ This will be filled out as there are more things added.
       goair vapp get --vappid=urn:vcloud:vapp:789d295e-296f-4679-94a4-c17ba36c3d62
       goair vapp get vm --vappname=test8
       goair vapp update --vappname=test8 --memorysizemb=2048 --cpucount=4
+      goair vapp get guestcustomization --vappname=test8
+      goair vapp update guestcustomization script --vappname=test8 < guestCustomizationExample.sh
       goair vapp action poweron --vappname=vappname
       goair vapp action poweroff --vappname=vappname
       goair vapp action reboot --vappname=vappname
@@ -163,7 +165,6 @@ This will be filled out as there are more things added.
       goair vapp action undeploy --vappname=vappname
       goair vapp action deploy --vappname=vappname
       goair vapp action delete --vappname=vappname
-      goair vapp get guestcustomization --vappname=Test6-VApp
 
 
 ##<a id="examples">Examples</a>
@@ -227,6 +228,7 @@ Finally, the since *Goair* is a compiled binary and possible even static (zero d
 ##<a id="future">Future</a>
 - Upload to Catalog
 - Guest customization scripts
+- Other vCA services
 
 ##<a id="contributions">Contributions</a>
 The package leverages a handful of open source technologies and projects.
