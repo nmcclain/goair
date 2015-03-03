@@ -36,6 +36,12 @@ func init() {
 	vappupdateCmd.Flags().StringVar(&vappid, "vappid", "", "VCLOUDAIR_VAPPID")
 	vappupdateCmd.Flags().StringVar(&cpucount, "cpucount", "", "VCLOUDAIR_CPUCOUNT")
 	vappupdateCmd.Flags().StringVar(&memorysizemb, "memorysizemb", "", "VCLOUDAIR_MEMORYSIZEMB")
+	vappinsertmediaCmd.Flags().StringVar(&vappname, "vappname", "", "VCLOUDAIR_VAPPNAME")
+	vappinsertmediaCmd.Flags().StringVar(&vappid, "vappid", "", "VCLOUDAIR_VAPPID")
+	vappinsertmediaCmd.Flags().StringVar(&medianame, "medianame", "", "VCLOUDAIR_MEDIANAME")
+	vappejectmediaCmd.Flags().StringVar(&vappname, "vappname", "", "VCLOUDAIR_VAPPNAME")
+	vappejectmediaCmd.Flags().StringVar(&vappid, "vappid", "", "VCLOUDAIR_VAPPID")
+	vappejectmediaCmd.Flags().StringVar(&medianame, "medianame", "", "VCLOUDAIR_MEDIANAME")
 
 	vappCmdV = vappCmd
 
@@ -50,6 +56,8 @@ func addCommandsVApp() {
 	vappCmd.AddCommand(vappactionCmd)
 	vappCmd.AddCommand(vappgetstatusCmd)
 	vappCmd.AddCommand(vappupdateCmd)
+	vappCmd.AddCommand(vappinsertmediaCmd)
+	vappCmd.AddCommand(vappejectmediaCmd)
 }
 
 var vappCmd = &cobra.Command{
@@ -87,6 +95,20 @@ var vappupdateCmd = &cobra.Command{
 	Short: "Update vapp",
 	Long:  `Update vapp`,
 	Run:   cmdUpdateVApp,
+}
+
+var vappinsertmediaCmd = &cobra.Command{
+	Use:   "insertmedia",
+	Short: "Insert media to vapp",
+	Long:  `Insert media to vapp`,
+	Run:   cmdInsertMediaVApp,
+}
+
+var vappejectmediaCmd = &cobra.Command{
+	Use:   "ejectmedia",
+	Short: "Eject media from vapp",
+	Long:  `Eject media from vapp`,
+	Run:   cmdEjectMediaVApp,
 }
 
 func cmdGetVApp(cmd *cobra.Command, args []string) {
@@ -424,6 +446,149 @@ func cmdUpdateVApp(cmd *cobra.Command, args []string) {
 			log.Fatalf("error waiting for task to complete: %v", err)
 		}
 
+	}
+
+}
+
+func cmdInsertMediaVApp(cmd *cobra.Command, args []string) {
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
+		"planid":             {planID, true, false, ""},
+		"region":             {region, true, false, "planid"},
+		"vdchref":            {vdchref, true, false, ""},
+		"vappid":             {vappid, true, false, ""},
+		"vappname":           {vappname, true, false, "vappid"},
+		"medianame":          {medianame, true, false, "medianame"},
+		"runasync":           {runasync, false, false, "runasync"},
+		"instanceAttributes": {instanceAttributes, true, false, ""},
+	})
+
+	client, err := authenticate(false)
+	if err != nil {
+		log.Fatalf("failed authenticating: %s", err)
+	}
+
+	err = authenticatecompute(client, false, "")
+	if err != nil {
+		log.Fatalf("Error authenticating compute: %s", err)
+	}
+
+	vdcuri, err := url.Parse(viper.GetString("vdchref"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client.VCDVDCHREF = *vdcuri
+
+	vdc := govcloudair.NewVdc(client)
+	vdc.Vdc = &types.Vdc{HREF: client.VCDVDCHREF.String()}
+
+	vapp := *govcloudair.NewVApp(client)
+	if viper.GetString("vappname") != "" {
+		vapp, err = vdc.FindVAppByName(viper.GetString("vappname"))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if viper.GetString("vappid") != "" {
+		vapp, err = vdc.FindVAppByID(viper.GetString("vappid"))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if vapp.VApp == nil {
+		log.Fatalf("Couldn't find VApp")
+	}
+
+	task, err := vapp.InsertMedia(medianame)
+	if err != nil {
+		log.Fatalf("error inserting media: %v", err)
+	}
+
+	if viper.GetString("runasync") == "true" {
+		yamlOutput, err := yaml.Marshal(&task)
+		if err != nil {
+			log.Fatalf("error marshaling: %s", err)
+		}
+		fmt.Println(string(yamlOutput))
+		return
+	}
+
+	err = task.WaitTaskCompletion()
+	if err != nil {
+		log.Fatalf("error waiting for task to complete: %v", err)
+	}
+
+}
+
+func cmdEjectMediaVApp(cmd *cobra.Command, args []string) {
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
+		"planid":             {planID, true, false, ""},
+		"region":             {region, true, false, "planid"},
+		"vdchref":            {vdchref, true, false, ""},
+		"vappid":             {vappid, true, false, ""},
+		"vappname":           {vappname, true, false, "vappid"},
+		"runasync":           {runasync, false, false, "runasync"},
+		"instanceAttributes": {instanceAttributes, true, false, ""},
+	})
+
+	client, err := authenticate(false)
+	if err != nil {
+		log.Fatalf("failed authenticating: %s", err)
+	}
+
+	err = authenticatecompute(client, false, "")
+	if err != nil {
+		log.Fatalf("Error authenticating compute: %s", err)
+	}
+
+	vdcuri, err := url.Parse(viper.GetString("vdchref"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client.VCDVDCHREF = *vdcuri
+
+	vdc := govcloudair.NewVdc(client)
+	vdc.Vdc = &types.Vdc{HREF: client.VCDVDCHREF.String()}
+
+	vapp := *govcloudair.NewVApp(client)
+	if viper.GetString("vappname") != "" {
+		vapp, err = vdc.FindVAppByName(viper.GetString("vappname"))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if viper.GetString("vappid") != "" {
+		vapp, err = vdc.FindVAppByID(viper.GetString("vappid"))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if vapp.VApp == nil {
+		log.Fatalf("Couldn't find VApp")
+	}
+
+	task, err := vapp.EjectMedia(medianame)
+	if err != nil {
+		log.Fatalf("error ejecting media: %v", err)
+	}
+
+	if viper.GetString("runasync") == "true" {
+		yamlOutput, err := yaml.Marshal(&task)
+		if err != nil {
+			log.Fatalf("error marshaling: %s", err)
+		}
+		fmt.Println(string(yamlOutput))
+		return
+	}
+
+	err = task.WaitTaskCompletion()
+	if err != nil {
+		log.Fatalf("error waiting for task to complete: %v", err)
 	}
 
 }

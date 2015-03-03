@@ -45,6 +45,7 @@ var (
 	ruleid             string
 	memorysizemb       string
 	cpucount           string
+	medianame          string
 )
 
 //FlagValue struct
@@ -81,11 +82,12 @@ func Exec() {
 //AddCommands function
 func AddCommands() {
 	GoairCmd.AddCommand(ondemandCmd)
-	GoairCmd.AddCommand(computeCmd)
-	GoairCmd.AddCommand(vappCmd)
 	GoairCmd.AddCommand(catalogCmd)
-	GoairCmd.AddCommand(orgvdcnetworkCmd)
+	GoairCmd.AddCommand(computeCmd)
 	GoairCmd.AddCommand(edgegatewayCmd)
+	GoairCmd.AddCommand(mediaCmd)
+	GoairCmd.AddCommand(orgvdcnetworkCmd)
+	GoairCmd.AddCommand(vappCmd)
 	GoairCmd.AddCommand(versionCmd)
 }
 

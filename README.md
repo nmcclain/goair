@@ -22,6 +22,7 @@ See Youtube videos here.
   - [catalog](#catalog)
   - [edgegateway](#edgegateway)
   - [vapp](#vapp)
+  - [media](#media)
 - [Examples](#examples)
 - [About the CLI](#aboutthecli)
 - [Future](#future)
@@ -216,7 +217,12 @@ This will be filled out as there are more things added.
       goair vapp action undeploy --vappname=vappname
       goair vapp action deploy --vappname=vappname
       goair vapp action delete --vappname=vappname
+      goair vapp insertmedia --vappname=vappname --medianame=configdrive-basic-id_rsa6.iso
+      goair vapp ejectmedia --vappname=vappname --medianame=configdrive-basic-id_rsa6.iso
 
+### <a id="media">media</a>
+
+      goair media get
 
 ##<a id="examples">Examples</a>
 Here is the help screen that is available at every level using ```help``` or ```--help```.
