@@ -72,7 +72,7 @@ var GoairCmd = &cobra.Command{
 var versionCmd = &cobra.Command{
 	Use: "version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("\nGoair Version: %v\n", "0.1.150301")
+		fmt.Printf("\nGoair Version: %v\n", "0.2.150303")
 	},
 }
 
