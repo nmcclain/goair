@@ -46,6 +46,9 @@ var (
 	memorysizemb       string
 	cpucount           string
 	medianame          string
+	publicipcount      string
+	networkname        string
+	publicip           string
 )
 
 //FlagValue struct

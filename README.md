@@ -192,6 +192,8 @@ This will be filled out as there are more things added.
       goair edgegateway get gatewayinteface
       goair edgegateway get iprange
       goair edgegateway get publicip
+      goair edgegateway new-publicip --publicipcount=3 --networkname=d3p4v54-ext
+      goair edgegateway remove-publicip --networkname=d3p4v54-ext --publicip=107.189.87.208
       goair edgegateway new-firewallrule --destinationport="22" --sourceport="Any" --destinationip="107.189.92.154" --sourceip="Any" --protocol=tcp --description="outside_in"
 
       goair edgegateway new-firewallrule --destinationport="Any" --sourceport="Any" --destinationip="Any" --sourceip="192.168.109.0/24" --protocol=tcp --description="inside_out"
@@ -284,7 +286,6 @@ Finally, the since *Goair* is a compiled binary and possible even static (zero d
 
 ##<a id="future">Future</a>
 - Upload to Catalog
-- Guest customization scripts
 - Other vCA services
 
 ##<a id="contributions">Contributions</a>

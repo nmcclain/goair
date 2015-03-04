@@ -42,6 +42,10 @@ func init() {
 	edgegatewaynewfirewallCmd.Flags().StringVar(&description, "description", "", "VCLOUDAIR_DESCRIPTION")
 	edgegatewaynewfirewallCmd.Flags().StringVar(&protocol, "protocol", "", "VCLOUDAIR_PROTOCOL")
 	edgegatewayremovefirewallCmd.Flags().StringVar(&ruleid, "ruleid", "", "VCLOUDAIR_RULEID")
+	edgegatewaynewpublicipCmd.Flags().StringVar(&publicipcount, "publicipcount", "", "VCLOUDAIR_PUBLICIPCOUNT")
+	edgegatewaynewpublicipCmd.Flags().StringVar(&networkname, "networkname", "", "VCLOUDAIR_NETWORKNAME")
+	edgegatewayremovepublicipCmd.Flags().StringVar(&publicip, "publicip", "", "VCLOUDAIR_PUBLICIP")
+	edgegatewayremovepublicipCmd.Flags().StringVar(&networkname, "networkname", "", "VCLOUDAIR_NETWORKNAME")
 
 	edgegatewayCmdV = edgegatewayCmd
 
@@ -57,6 +61,8 @@ func addCommandsEdgeGateway() {
 	edgegatewayCmd.AddCommand(edgegatewayremovenatCmd)
 	edgegatewayCmd.AddCommand(edgegatewaynewfirewallCmd)
 	edgegatewayCmd.AddCommand(edgegatewayremovefirewallCmd)
+	edgegatewayCmd.AddCommand(edgegatewaynewpublicipCmd)
+	edgegatewayCmd.AddCommand(edgegatewayremovepublicipCmd)
 }
 
 var edgegatewayCmd = &cobra.Command{
@@ -101,6 +107,20 @@ var edgegatewayremovefirewallCmd = &cobra.Command{
 	Short: "Remove firewall rule on edgegateway",
 	Long:  `Remove firewall rule on edgegateway`,
 	Run:   cmdRemoveFirewallEdgeGateway,
+}
+
+var edgegatewaynewpublicipCmd = &cobra.Command{
+	Use:   "new-publicip",
+	Short: "Request new public IPs edgegateway",
+	Long:  `Request new public IPs edgegateway`,
+	Run:   cmdNewPublicIPEdgeGateway,
+}
+
+var edgegatewayremovepublicipCmd = &cobra.Command{
+	Use:   "remove-publicip",
+	Short: "Remove public IP from edgegateway",
+	Long:  `Remove public IP from edgegateway`,
+	Run:   cmdRemovePublicIPEdgeGateway,
 }
 
 func cmdGetEdgeGateway(cmd *cobra.Command, args []string) {
@@ -173,7 +193,14 @@ func cmdGetEdgeGateway(cmd *cobra.Command, args []string) {
 		publicIPInfoMap = make(map[string]*PublicIPInfo)
 
 		for _, ipRange := range ipRanges.IPRange {
-			publicIPInfoMap[ipRange.StartAddress] = &PublicIPInfo{"", false, false, ipRange.StartAddress, ""}
+			fromToIPRange, err := GetIPRange(ipRange.StartAddress, ipRange.EndAddress)
+			if err != nil {
+				log.Fatalf("err: problem getting IP range: %v", err)
+			}
+			for _, actualIP := range fromToIPRange {
+				publicIPInfoMap[actualIP] = &PublicIPInfo{"", false, false, actualIP, ""}
+			}
+
 		}
 
 		natRules := edgeGateway.EdgeGateway.Configuration.EdgeGatewayServiceConfiguration.NatService.NatRule
@@ -556,4 +583,120 @@ func cmdRemoveFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("error waiting for task to complete: %v", err)
 	}
+}
+
+func cmdNewPublicIPEdgeGateway(cmd *cobra.Command, args []string) {
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
+		"planid":             {planID, true, false, ""},
+		"region":             {region, true, false, "planid"},
+		"vdchref":            {vdchref, true, false, ""},
+		"publicipcount":      {publicipcount, true, false, ""},
+		"networkname":        {networkname, true, false, ""},
+		"runasync":           {runasync, false, false, ""},
+		"instanceAttributes": {instanceAttributes, true, false, ""},
+	})
+
+	client, err := authenticate(false)
+	if err != nil {
+		log.Fatalf("failed authenticating: %s", err)
+	}
+
+	err = authenticatecompute(client, false, "")
+	if err != nil {
+		log.Fatalf("Error authenticating compute: %s", err)
+	}
+
+	vdcuri, err := url.Parse(viper.GetString("vdchref"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client.VCDVDCHREF = *vdcuri
+
+	vdc := govcloudair.NewVdc(client)
+	vdc.Vdc = &types.Vdc{HREF: client.VCDVDCHREF.String()}
+	err = vdc.Refresh()
+	if err != nil {
+		log.Fatalf("err refreshing vdc: %v", err)
+	}
+
+	edgeGateway, err := vdc.FindEdgeGateway("")
+	if err != nil {
+		log.Fatalf("err getting edge gateway: %v", err)
+	}
+
+	task, err := edgeGateway.RequestPublicIP(networkname, publicipcount)
+	if err != nil {
+		log.Fatalf("err requesting public ip: %v", err)
+	}
+
+	//	fmt.Printf("%+v", externalIPAddressActionList)
+
+	if viper.GetString("runasync") == "true" {
+		yamlOutput, err := yaml.Marshal(&task)
+		if err != nil {
+			log.Fatalf("error marshaling: %s", err)
+		}
+		fmt.Println(string(yamlOutput))
+		return
+	}
+
+}
+
+func cmdRemovePublicIPEdgeGateway(cmd *cobra.Command, args []string) {
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
+		"planid":             {planID, true, false, ""},
+		"region":             {region, true, false, "planid"},
+		"vdchref":            {vdchref, true, false, ""},
+		"publicip":           {publicip, true, false, ""},
+		"networkname":        {networkname, true, false, ""},
+		"runasync":           {runasync, false, false, ""},
+		"instanceAttributes": {instanceAttributes, true, false, ""},
+	})
+
+	client, err := authenticate(false)
+	if err != nil {
+		log.Fatalf("failed authenticating: %s", err)
+	}
+
+	err = authenticatecompute(client, false, "")
+	if err != nil {
+		log.Fatalf("Error authenticating compute: %s", err)
+	}
+
+	vdcuri, err := url.Parse(viper.GetString("vdchref"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client.VCDVDCHREF = *vdcuri
+
+	vdc := govcloudair.NewVdc(client)
+	vdc.Vdc = &types.Vdc{HREF: client.VCDVDCHREF.String()}
+	err = vdc.Refresh()
+	if err != nil {
+		log.Fatalf("err refreshing vdc: %v", err)
+	}
+
+	edgeGateway, err := vdc.FindEdgeGateway("")
+	if err != nil {
+		log.Fatalf("err getting edge gateway: %v", err)
+	}
+
+	task, err := edgeGateway.RemovePublicIP(networkname, publicip)
+	if err != nil {
+		log.Fatalf("err removing public ip: %v", err)
+	}
+
+	//	fmt.Printf("%+v", externalIPAddressActionList)
+
+	if viper.GetString("runasync") == "true" {
+		yamlOutput, err := yaml.Marshal(&task)
+		if err != nil {
+			log.Fatalf("error marshaling: %s", err)
+		}
+		fmt.Println(string(yamlOutput))
+		return
+	}
+
 }
