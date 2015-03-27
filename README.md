@@ -1,7 +1,7 @@
 #GoAir
-**GoAir** is a multi-platform (OS X/Docker/Linux/Windows/FreeBSD) CLI tool.  It's current focus is to simplify the process of deploying machines and configuring network services for on-demand vCloud Air compute services.
+**GoAir** is a multi-platform (OS X/Docker/Linux/Windows/FreeBSD) CLI tool.  It's current focus is to simplify the process of deploying machines and configuring network services for on-demand vCloud Air compute services.  Additionally you can use it in an indepdenent mode to connect directly to vCloud Director instances.
 
-See Youtube videos here.
+See Youtube videos [here](https://www.youtube.com/watch?v=NF-rQ7MZlEE&list=PLbssOJyyvHuWiBQAg9EFWH570timj2fxt&index=4) and [here](https://www.youtube.com/watch?v=rZObzko3iHQ&list=PLbssOJyyvHuWiBQAg9EFWH570timj2fxt&index=3).
 
 
 
@@ -10,13 +10,15 @@ See Youtube videos here.
   - [Flags with possible runtime persistence](#flagspersistency)
   - [Configuration files](#configfiles)
   - [Environment Variables](#env)
-- [Running - Basic](#running-basic)
+- [Running - Basic with vCloud Air](#running-basic-VA)
+- [Running - Basic with vCloud Director](#running-basic-independent)
 - [Running - Docker Mini (scratch)](#advanced-docker)
   - [Basic Docker](#basic-docker)
   - [Advanced Docker](#advanced-docker)
 - [Deploy VApp Steps](#deployvapp)
 - [CLI Command Examples](#cliexamples)
   - [ondemand](#ondemand)
+  - [vcd](#vcd)
   - [orgvdcnetwork](#orgvdcnetwork)
   - [compute](#compute)
   - [catalog](#catalog)
@@ -73,6 +75,8 @@ Set the environment variables to ```true``` on the boolean based variables.
       VCLOUDAIR_USERNAME: Your vCloud Air username
       VCLOUDAIR_PASSWORD: Your vCloud Air password
       VCLOUDAIR_ENDPOINT: Your preferred vCloud Air intiial endpoint, ie. https://us-california-1-3.vchs.vmware.com/api
+      VCLOUDAIR_SESSIONURI: A vCloud Director specific sessions URI (indepdendent mode)
+      VCLOUDAIR_ORGNAME: A vCloud Director specific Org Name (indepdendent mode)
       VCLOUDAIR_SHOW_RESPONSE: Whether to show the response or not from the API call
       VCLOUDAIR_SHOW_BODY: Whether to show the HTTP body.  Will intercept POST bodies.
       VCLOUDAIR_INSECURE: Whether to disregard SSL errors
@@ -83,13 +87,17 @@ Set the environment variables to ```true``` on the boolean based variables.
 
 
 
-## <a id="running-basic">Running - Basic</id>
+## <a id="running-basic">Running - Basic (with vCloud Air)</id>
 The CLI can be ran as follows.  Using the proper binary from the ```release``` directory the following command will work.
 
 ```goair --help```
 
 You can also leverage the Docker container to run the CLI commands directly or interactively.  To run them directly use the following command.
 ```docker run -ti -e VCLOUDAIR_USERNAME='username@domain' -e VCLOUDAIR_PASSWORD='password' emccode/goair --help```
+
+
+## <a id="running-basic-independent">Running - Basic (with vCloud Director)</id>
+The CLI can also be used to interface with vCloud Director in an indepdendent fashion.  This means you would specify a couple of extra parameters for ```sessionuri``` and ```orgname```.  The ```endpoint``` parameter is not in independent mode.  See the ```vcd``` comand examples.
 
 
 ## <a id="basic-docker">Running - Docker</a>
@@ -156,7 +164,11 @@ The following steps are mostly operational but useful to see a complete flow of 
 This will be filled out as there are more things added.
 
 ### <a id="ondemand">ondemand</a>
+Specify ```VCLOUDAIR_USERNAME```, ```VCLOUDAIR_PASSWORD```, ```VCLOUDAIR_ENDPOINT``` per instructions above.
 
+      VCLOUDAIR_USERNAME='username@domain' \
+      VCLOUDAIR_PASSWORD='password' \
+      VCLOUDAIR_ENDPOINT="https://us-california-1-3.vchs.vmware.com/api" \
       goair ondemand login
       goair ondemand plans get
       goair ondemand serivcegroupids get
@@ -164,16 +176,26 @@ This will be filled out as there are more things added.
       goair ondemand users get
       goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
 
-### <a id="orgvdcnetwork">orgvdcnetwork</a>
+### <a id="vcd">vcd</a>
+Specify ```VCLOUDAIR_USERNAME```, ```VCLOUDAIR_PASSWORD```, ```VCLOUDAIR_SESSIONURI```, and ```VCLOUDAIR_ORGNAME``` per instructions above.
 
-      goair orgvdcnetwork get
-      goair orgvdcnetwork get --networkname=default-routed-network
+      VCLOUDAIR_USERNAME='username@domain' \
+      VCLOUDAIR_PASSWORD='password' \ VCLOUDAIR_SESSIONURI=https://us-virginia-1-4.vchs.vmware.com/api/compute/api/sessions \
+      VCLOUDAIR_ORGNAME=ae010611-6b0b-4f56-a468-ce81f196b51b \
+      goair vcd login
+      goair vcd vdc get
+      goair vcd vdc use --vdcname=VDC4
 
 ### <a id="compute">compute</a>
       goair compute get
       goair compute get --region=us-california-1-3.vchs.vmware.com
       goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
       goair compute use --region=us-california-1-3.vchs.vmware.com --name=VDC4
+
+### <a id="orgvdcnetwork">orgvdcnetwork</a>
+
+      goair orgvdcnetwork get
+      goair orgvdcnetwork get --networkname=default-routed-network
 
 ### <a id="catalog">catalog</a>
       goair catalog get
@@ -229,23 +251,27 @@ This will be filled out as there are more things added.
 ##<a id="examples">Examples</a>
 Here is the help screen that is available at every level using ```help``` or ```--help```.
 
-    Usage:
-      goair [flags]
-      goair [command]
+      Usage:
+        goair [flags]
+        goair [command]
 
-    Available Commands:
-      ondemand                  ondemand
-      compute                   compute
-      vapp                      vapp
-      catalog                   catalog
-      orgvdcnetwork             orgvdcnetwork
-      edgegateway               edgegateway
-      help [command]            Help about any command
+      Available Commands:
+        ondemand                  ondemand
+        catalog                   catalog
+        compute                   compute
+        edgegateway               edgegateway
+        media                     media
+        orgvdcnetwork             orgvdcnetwork
+        vapp                      vapp
+        version
+        vcd                       vcd
+        help [command]            Help about any command
 
-     Available Flags:
-          --Config="": config file (default is $HOME/goair/config.yaml)
-          --help=false: help for goair
+       Available Flags:
+            --Config="": config file (default is $HOME/goair/config.yaml)
+            --help=false: help for goair
 
+      Use "goair help [command]" for more information about that command.
 
 ##<a id="output">Output from commands</a>
 The intended output from the commands is to be a format that is both human readable and interpretable in a structured programmatic way.  For this, YAML has been chosen for most command outputs.  

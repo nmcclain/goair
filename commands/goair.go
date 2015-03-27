@@ -30,6 +30,7 @@ var (
 	catalogname        string
 	catalogid          string
 	orghref            string
+	orgname            string
 	catalogitemname    string
 	vdcnetworkname     string
 	vmname             string
@@ -49,6 +50,7 @@ var (
 	publicipcount      string
 	networkname        string
 	publicip           string
+	sessionuri         string
 )
 
 //FlagValue struct
@@ -72,7 +74,7 @@ var GoairCmd = &cobra.Command{
 var versionCmd = &cobra.Command{
 	Use: "version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("\nGoair Version: %v\n", "0.2.150303")
+		fmt.Printf("\nGoair Version: %v\n", "0.3.150327")
 	},
 }
 
@@ -92,6 +94,7 @@ func AddCommands() {
 	GoairCmd.AddCommand(orgvdcnetworkCmd)
 	GoairCmd.AddCommand(vappCmd)
 	GoairCmd.AddCommand(versionCmd)
+	GoairCmd.AddCommand(vcdCmd)
 }
 
 var goairCmdV *cobra.Command

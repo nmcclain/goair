@@ -49,10 +49,7 @@ var mediagetCmd = &cobra.Command{
 
 func cmdGetMedia(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref": {vdchref, true, false, ""},
 	})
 
 	client, err := authenticate(false)

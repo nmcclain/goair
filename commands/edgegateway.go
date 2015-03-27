@@ -124,11 +124,7 @@ var edgegatewayremovepublicipCmd = &cobra.Command{
 }
 
 func cmdGetEdgeGateway(cmd *cobra.Command, args []string) {
-	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
-	})
+	initConfig(cmd, "goair_compute", true, map[string]FlagValue{})
 
 	client, err := authenticate(false)
 	if err != nil {
@@ -247,14 +243,11 @@ func cmdGetEdgeGateway(cmd *cobra.Command, args []string) {
 
 func cmdNewNatEdgeGateway(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"externalip":         {externalip, true, false, ""},
-		"internalip":         {internalip, true, false, ""},
-		"description":        {description, false, false, ""},
-		"runasync":           {runasync, false, false, ""},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":     {vdchref, true, false, ""},
+		"externalip":  {externalip, true, false, ""},
+		"internalip":  {internalip, true, false, ""},
+		"description": {description, false, false, ""},
+		"runasync":    {runasync, false, false, ""},
 	})
 
 	if len(args) == 0 || args[0] != "1to1" {
@@ -313,13 +306,10 @@ func cmdNewNatEdgeGateway(cmd *cobra.Command, args []string) {
 
 func cmdRemoveNatEdgeGateway(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"externalip":         {externalip, true, false, ""},
-		"internalip":         {internalip, true, false, ""},
-		"runasync":           {runasync, false, false, ""},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":    {vdchref, true, false, ""},
+		"externalip": {externalip, true, false, ""},
+		"internalip": {internalip, true, false, ""},
+		"runasync":   {runasync, false, false, ""},
 	})
 
 	if len(args[0]) == 0 || args[0] != "1to1" {
@@ -378,17 +368,14 @@ func cmdRemoveNatEdgeGateway(cmd *cobra.Command, args []string) {
 
 func cmdNewFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"sourceip":           {sourceip, true, false, ""},
-		"sourceport":         {sourceport, false, false, ""},
-		"destinationip":      {destinationip, true, false, ""},
-		"destinationport":    {destinationport, false, false, ""},
-		"description":        {description, true, false, ""},
-		"protocol":           {protocol, false, false, ""},
-		"runasync":           {runasync, false, false, ""},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":         {vdchref, true, false, ""},
+		"sourceip":        {sourceip, true, false, ""},
+		"sourceport":      {sourceport, false, false, ""},
+		"destinationip":   {destinationip, true, false, ""},
+		"destinationport": {destinationport, false, false, ""},
+		"description":     {description, true, false, ""},
+		"protocol":        {protocol, false, false, ""},
+		"runasync":        {runasync, false, false, ""},
 	})
 
 	if len(args) > 0 && args[0] != "1to1" {
@@ -513,12 +500,9 @@ func cmdNewFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 
 func cmdRemoveFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"ruleid":             {ruleid, true, false, ""},
-		"runasync":           {runasync, false, false, ""},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":  {vdchref, true, false, ""},
+		"ruleid":   {ruleid, true, false, ""},
+		"runasync": {runasync, false, false, ""},
 	})
 
 	if len(args) > 0 && args[0] != "1to1" {
@@ -587,13 +571,10 @@ func cmdRemoveFirewallEdgeGateway(cmd *cobra.Command, args []string) {
 
 func cmdNewPublicIPEdgeGateway(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"publicipcount":      {publicipcount, true, false, ""},
-		"networkname":        {networkname, true, false, ""},
-		"runasync":           {runasync, false, false, ""},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":       {vdchref, true, false, ""},
+		"publicipcount": {publicipcount, true, false, ""},
+		"networkname":   {networkname, true, false, ""},
+		"runasync":      {runasync, false, false, ""},
 	})
 
 	client, err := authenticate(false)
@@ -645,13 +626,10 @@ func cmdNewPublicIPEdgeGateway(cmd *cobra.Command, args []string) {
 
 func cmdRemovePublicIPEdgeGateway(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"publicip":           {publicip, true, false, ""},
-		"networkname":        {networkname, true, false, ""},
-		"runasync":           {runasync, false, false, ""},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":     {vdchref, true, false, ""},
+		"publicip":    {publicip, true, false, ""},
+		"networkname": {networkname, true, false, ""},
+		"runasync":    {runasync, false, false, ""},
 	})
 
 	client, err := authenticate(false)

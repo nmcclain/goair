@@ -64,8 +64,6 @@ var catalogdeployCmd = &cobra.Command{
 
 func cmdGetCatalog(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":          {planID, true, false, ""},
-		"region":          {region, true, false, "planid"},
 		"orghref":         {orghref, true, false, ""},
 		"catalogname":     {catalogname, false, false, ""},
 		"catalogitemname": {catalogitemname, false, false, ""},
@@ -157,8 +155,6 @@ func cmdGetCatalog(cmd *cobra.Command, args []string) {
 
 func cmdDeployCatalog(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":          {planID, true, false, ""},
-		"region":          {region, true, false, "planid"},
 		"orghref":         {orghref, true, false, ""},
 		"vdchref":         {vdchref, true, false, ""},
 		"catalogname":     {catalogname, true, false, ""},

@@ -113,12 +113,9 @@ var vappejectmediaCmd = &cobra.Command{
 
 func cmdGetVApp(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"vappid":             {vappid, false, false, ""},
-		"vappname":           {vappname, false, false, "vappid"},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":  {vdchref, true, false, ""},
+		"vappid":   {vappid, false, false, ""},
+		"vappname": {vappname, false, false, "vappid"},
 	})
 
 	if len(args) > 1 {
@@ -214,12 +211,9 @@ func cmdGetVApp(cmd *cobra.Command, args []string) {
 
 func cmdActionVApp(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"vappid":             {vappid, true, false, ""},
-		"vappname":           {vappname, true, false, "vappid"},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":  {vdchref, true, false, ""},
+		"vappid":   {vappid, true, false, ""},
+		"vappname": {vappname, true, false, "vappid"},
 	})
 
 	client, err := authenticate(false)
@@ -294,12 +288,9 @@ func cmdActionVApp(cmd *cobra.Command, args []string) {
 
 func cmdGetStatusVApp(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"vappid":             {vappid, true, false, ""},
-		"vappname":           {vappname, true, false, "vappid"},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":  {vdchref, true, false, ""},
+		"vappid":   {vappid, true, false, ""},
+		"vappname": {vappname, true, false, "vappid"},
 	})
 
 	client, err := authenticate(false)
@@ -351,15 +342,12 @@ func cmdGetStatusVApp(cmd *cobra.Command, args []string) {
 
 func cmdUpdateVApp(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"vappid":             {vappid, true, false, ""},
-		"vappname":           {vappname, true, false, "vappid"},
-		"memorysizemb":       {memorysizemb, false, false, "memorysizemb"},
-		"cpucount":           {cpucount, false, false, "cpucount"},
-		"runasync":           {cpucount, false, false, "runasync"},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":      {vdchref, true, false, ""},
+		"vappid":       {vappid, true, false, ""},
+		"vappname":     {vappname, true, false, "vappid"},
+		"memorysizemb": {memorysizemb, false, false, "memorysizemb"},
+		"cpucount":     {cpucount, false, false, "cpucount"},
+		"runasync":     {cpucount, false, false, "runasync"},
 	})
 
 	client, err := authenticate(false)
@@ -452,14 +440,11 @@ func cmdUpdateVApp(cmd *cobra.Command, args []string) {
 
 func cmdInsertMediaVApp(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"vappid":             {vappid, true, false, ""},
-		"vappname":           {vappname, true, false, "vappid"},
-		"medianame":          {medianame, true, false, "medianame"},
-		"runasync":           {runasync, false, false, "runasync"},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":   {vdchref, true, false, ""},
+		"vappid":    {vappid, true, false, ""},
+		"vappname":  {vappname, true, false, "vappid"},
+		"medianame": {medianame, true, false, "medianame"},
+		"runasync":  {runasync, false, false, "runasync"},
 	})
 
 	client, err := authenticate(false)
@@ -524,13 +509,10 @@ func cmdInsertMediaVApp(cmd *cobra.Command, args []string) {
 
 func cmdEjectMediaVApp(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"vappid":             {vappid, true, false, ""},
-		"vappname":           {vappname, true, false, "vappid"},
-		"runasync":           {runasync, false, false, "runasync"},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":  {vdchref, true, false, ""},
+		"vappid":   {vappid, true, false, ""},
+		"vappname": {vappname, true, false, "vappid"},
+		"runasync": {runasync, false, false, "runasync"},
 	})
 
 	client, err := authenticate(false)

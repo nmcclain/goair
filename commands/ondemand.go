@@ -182,7 +182,7 @@ func authenticate(force bool) (client *govcloudair.Client, err error) {
 		return &govcloudair.Client{}, fmt.Errorf("Problem with client decodeGobFile: %v", err)
 	}
 
-	if force || getValue.VarMap["VAToken"] == nil {
+	if force || (getValue.VarMap["VAToken"] == nil && getValue.VarMap["VCDToken"] == nil) {
 		err = client.AuthenticateOD("", "")
 		if err != nil {
 			return client, fmt.Errorf("error Authenticating: %s", err)
@@ -194,7 +194,9 @@ func authenticate(force bool) (client *govcloudair.Client, err error) {
 			},
 		})
 	} else {
-		client.VAToken = *getValue.VarMap["VAToken"]
+		if getValue.VarMap["VAToken"] != nil {
+			client.VAToken = *getValue.VarMap["VAToken"]
+		}
 	}
 
 	return client, err

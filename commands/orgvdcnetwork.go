@@ -49,11 +49,8 @@ var orgvdcnetworkgetCmd = &cobra.Command{
 
 func cmdGetOrgVdcNetwork(cmd *cobra.Command, args []string) {
 	initConfig(cmd, "goair_compute", true, map[string]FlagValue{
-		"planid":             {planID, true, false, ""},
-		"region":             {region, true, false, "planid"},
-		"vdchref":            {vdchref, true, false, ""},
-		"vdcnetworkname":     {vdcnetworkname, false, false, ""},
-		"instanceAttributes": {instanceAttributes, true, false, ""},
+		"vdchref":        {vdchref, true, false, ""},
+		"vdcnetworkname": {vdcnetworkname, false, false, ""},
 	})
 
 	client, err := authenticate(false)
