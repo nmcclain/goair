@@ -180,7 +180,8 @@ Specify ```VCLOUDAIR_USERNAME```, ```VCLOUDAIR_PASSWORD```, ```VCLOUDAIR_ENDPOIN
 Specify ```VCLOUDAIR_USERNAME```, ```VCLOUDAIR_PASSWORD```, ```VCLOUDAIR_SESSIONURI```, and ```VCLOUDAIR_ORGNAME``` per instructions above.
 
       VCLOUDAIR_USERNAME='username@domain' \
-      VCLOUDAIR_PASSWORD='password' \ VCLOUDAIR_SESSIONURI=https://us-virginia-1-4.vchs.vmware.com/api/compute/api/sessions \
+      VCLOUDAIR_PASSWORD='password' \
+      VCLOUDAIR_SESSIONURI=https://us-virginia-1-4.vchs.vmware.com/api/compute/api/sessions \
       VCLOUDAIR_ORGNAME=ae010611-6b0b-4f56-a468-ce81f196b51b \
       goair vcd login
       goair vcd vdc get

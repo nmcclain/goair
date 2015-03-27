@@ -1,8 +1,7 @@
-FROM scratch 
+FROM ubuntu 
 
-ADD ./release/goair-Linux-static /bin/goair
+ADD ./release/goair-Linux-x86_64 /bin/goair
 
-ENV VCLOUDAIR_USECERTS true
+RUN apt-get install -y ca-certificates
 
-ENTRYPOINT ["/bin/goair"]
-CMD ["--help"]
+ENTRYPOINT ["/bin/bash"]
