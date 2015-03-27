@@ -176,7 +176,13 @@ Specify ```VCLOUDAIR_USERNAME```, ```VCLOUDAIR_PASSWORD```, ```VCLOUDAIR_ENDPOIN
       goair ondemand users get
       goair ondemand billable costs get --servicegroupid=4fde19a4-7621-428e-b190-dd4db2e158cd
 
-### <a id="vcd">vcd</a>
+### <a id="compute">compute (only for ondemand mode)</a>
+      goair compute get
+      goair compute get --region=us-california-1-3.vchs.vmware.com
+      goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
+      goair compute use --region=us-california-1-3.vchs.vmware.com --name=VDC4
+
+### <a id="vcd">vcd (only for independent mode)</a>
 Specify ```VCLOUDAIR_USERNAME```, ```VCLOUDAIR_PASSWORD```, ```VCLOUDAIR_SESSIONURI```, and ```VCLOUDAIR_ORGNAME``` per instructions above.
 
       VCLOUDAIR_USERNAME='username@domain' \
@@ -187,11 +193,6 @@ Specify ```VCLOUDAIR_USERNAME```, ```VCLOUDAIR_PASSWORD```, ```VCLOUDAIR_SESSION
       goair vcd vdc get
       goair vcd vdc use --vdcname=VDC4
 
-### <a id="compute">compute</a>
-      goair compute get
-      goair compute get --region=us-california-1-3.vchs.vmware.com
-      goair compute use --planid=41400e74-4445-49ef-90a4-98da4ccfb16c
-      goair compute use --region=us-california-1-3.vchs.vmware.com --name=VDC4
 
 ### <a id="orgvdcnetwork">orgvdcnetwork</a>
 
